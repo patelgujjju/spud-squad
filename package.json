@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --filter ./apps/* run dev",
-    "test": "vitest run",
+    "test": "pnpm test:shared && pnpm test:server",
+    "test:shared": "vitest run",
+    "test:server": "pnpm --filter @spud-squad/shared build && pnpm --filter @spud-squad/server test",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "pnpm -r --if-present run build",

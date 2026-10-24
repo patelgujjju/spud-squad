@@ -3,9 +3,16 @@
   "name": "spud-squad",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-24",
+  "compatibility_flags": ["nodejs_compat"],
   "dev": { "ip": "0.0.0.0", "port": 8787 },
   "durable_objects": {
-    "bindings": [{ "name": "ROOMS", "class_name": "Room" }],
+    "bindings": [
+      { "name": "ROOMS", "class_name": "Room" },
+      { "name": "JOIN_GATES", "class_name": "JoinGate" },
+    ],
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Room"] },
+    { "tag": "v2", "new_sqlite_classes": ["JoinGate"] },
+  ],
 }
