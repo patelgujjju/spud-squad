@@ -1,0 +1,26 @@
+{
+  "id": "1-6",
+  "name": "Belt Up",
+  "world": 1,
+  "buttons": ["UP", "DOWN", "LEFT", "RIGHT", "GRAB"],
+  "map": [
+    "#############",
+    "#C.>>>>...SE#",
+    "###.##.######",
+    "###....######",
+    "#############"
+  ],
+  "start": [1, 1],
+  "objects": [
+    {
+      "type": "slicer",
+      "at": [10, 1],
+      "onMs": 1200,
+      "offMs": 1800,
+      "phaseMs": 0
+    }
+  ],
+  "goldenChip": [4, 3],
+  "parSeconds": 15,
+  "darkness": false
+}

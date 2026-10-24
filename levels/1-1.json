@@ -1,0 +1,12 @@
+{
+  "id": "1-1",
+  "name": "Wake Up, Spud",
+  "world": 1,
+  "buttons": ["UP", "DOWN", "LEFT", "RIGHT", "GRAB"],
+  "map": ["#########", "#....####", "####.####", "####...E#", "#########"],
+  "start": [1, 1],
+  "objects": [],
+  "goldenChip": [5, 3],
+  "parSeconds": 5,
+  "darkness": false
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@spud-squad/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@spud-squad/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261024.1"
+  }
+}

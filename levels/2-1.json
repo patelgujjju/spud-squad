@@ -1,0 +1,20 @@
+{
+  "id": "2-1",
+  "name": "Chop Chop",
+  "world": 2,
+  "buttons": ["UP", "DOWN", "LEFT", "RIGHT", "GRAB"],
+  "map": ["#########", "#..C.S.E#", "#########"],
+  "start": [1, 1],
+  "objects": [
+    {
+      "type": "slicer",
+      "at": [5, 1],
+      "onMs": 1200,
+      "offMs": 1800,
+      "phaseMs": 0
+    }
+  ],
+  "goldenChip": [6, 1],
+  "parSeconds": 6,
+  "darkness": false
+}

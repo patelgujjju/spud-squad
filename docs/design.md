@@ -62,6 +62,15 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 
 ## Core gameplay
 
+### Approved Milestone 1 scope update (24 October 2026)
+
+- Milestone 1 also implements the slicer blade, its 400 ms warning, fixed level-time schedule and group-size safe-window factors. The prototype includes 2-1 "Chop Chop" and one slicer near the end of 1-6. This intentionally introduces a World 2 mechanic early for the fun test.
+- Room creation generates a code and calls `idFromName(code)` on that room's Durable Object to claim it atomically. An active claim causes a retry with a new code. There is no global room directory object.
+- Live simulation state stays in room memory. SQLite stores only small, infrequently changing room settings, players and reconnect tokens; presses and ticks never write to SQLite.
+- Vite and Wrangler listen on all network interfaces for local testing. Browser WebSocket URLs derive from the page host; Vite proxies room HTTP/WebSocket traffic to local Wrangler.
+- Package scripts support Windows PowerShell. Git uses `* text=auto eol=lf`.
+- Each implementation stage ends with exact commands the user can run to commit that stage.
+
 Every player sees the whole level on their own screen, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
 
 ### Movement rules

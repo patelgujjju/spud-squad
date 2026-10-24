@@ -1,0 +1,20 @@
+{
+  "id": "1-4",
+  "name": "Card Sharp",
+  "world": 1,
+  "buttons": ["UP", "DOWN", "LEFT", "RIGHT", "GRAB"],
+  "map": [
+    "###########",
+    "#....#...E#",
+    "#.##.#.##D#",
+    "#..C.#....#",
+    "###.#####.#",
+    "#..k......#",
+    "###########"
+  ],
+  "start": [1, 1],
+  "objects": [],
+  "goldenChip": [1, 5],
+  "parSeconds": 10,
+  "darkness": false
+}

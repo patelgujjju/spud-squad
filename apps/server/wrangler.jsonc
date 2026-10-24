@@ -1,0 +1,11 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "spud-squad",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-24",
+  "dev": { "ip": "0.0.0.0", "port": 8787 },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "Room" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+}
