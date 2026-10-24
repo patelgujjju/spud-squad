@@ -68,7 +68,9 @@ pnpm build
 
 Playwright checks 360×740, 390×844 and 1366×768, plus rotated phone layouts. It uses two browser contexts for create/join/play/results/reconnect and a separate laptop-plus-two-phones scenario. Tests include actual multi-touch input, immediate feedback, keyboard rejection, first-gesture audio, optional wake-lock lifecycle, slicer death/respawn, and Next Level. Results and board screenshots are saved under `apps/client/test-results/`; the HTML report is under `apps/client/playwright-report/`. They are ignored by Git.
 
-The build checks the sum of **all** JavaScript chunks against 400 KiB gzipped, including the PixiJS chunks loaded on entry to a level. No art, font or sound files are downloaded from third parties. The development servers listen on the local network; `pnpm build` does not publish.
+The build checks the sum of **all** JavaScript chunks against 400 KiB gzipped, including the Three.js renderer loaded on entry to a level. The factory, Spud, effects and hand labels are generated in code. No art, font or sound files are downloaded from third parties. The development servers listen on the local network; `pnpm build` does not publish.
+
+The 3D camera follows Spud and fills the game area, panning across long boards on portrait phones. Open **Settings** (the gear button) to choose Auto, High or Low graphics. Auto starts with shadows and particles and disables them after three seconds below 45 fps; Low disables both immediately. Pixel ratio is capped at 2. System reduced-motion preferences also remove ambient motion and particles. These options affect drawing only; movement, input, room messages and the authoritative server are unchanged.
 
 ## Manual fun-test checklist
 
@@ -176,4 +178,22 @@ git commit -m "Add authoritative hibernating room server and Workers integration
 Set-Location F:\Spud-Squad
 git add README.md docs/design.md docs/server.md package.json apps/client apps/server/src packages/shared/src tools/check-bundle.mjs
 git commit -m "Build playable mobile client with Pixi art, touch controls, audio and browser tests"
+```
+
+## Three.js renderer update
+
+The drawing interface is in `apps/client/src/game/renderer.ts`; the procedural scene, camera, character, props, hands and quality policy live in `apps/client/src/game/three/`. The shared engine, server and wire protocol are unchanged. Hand name textures are cached per player; repeated factory pieces use instancing. The renderer disposes its GPU resources when leaving play and pauses animation in hidden tabs.
+
+Run `pnpm test:client` for multiplayer smoke tests, quality checks and screenshot exports. To regenerate only the six requested images:
+
+```powershell
+pnpm --filter @spud-squad/client test --grep "factory screenshot" --project=phone-390 --project=laptop --trace=off
+```
+
+The PNGs in `docs/screenshots/` show real two-player rooms on 1-1, 1-6 and 2-1 at 390×844 and 1366×768. The browser tests use a software WebGL renderer; verify frame rate and thermal behavior on a physical Android phone before the group fun test. Test Auto/High/Low in Settings, rotate both phones, watch a warning and death/respawn, and check names on rapid simultaneous presses.
+
+```powershell
+Set-Location F:\Spud-Squad
+git add AGENTS.md README.md docs/design.md docs/screenshots apps/client pnpm-lock.yaml
+git commit -m "Replace PixiJS drawing with procedural Three.js toon renderer"
 ```

@@ -9,6 +9,7 @@ import { HomeScreen } from './screens/home.js';
 import { LobbyScreen } from './screens/lobby.js';
 import { PlayScreen } from './screens/play.js';
 import { ResultsScreen } from './screens/results.js';
+import { openSettings } from './screens/settings.js';
 import './styles.css';
 
 const profile = getProfile();
@@ -47,7 +48,10 @@ const leave = button(
   'button leave',
 );
 leave.hidden = true;
-topbar.append(brand, status, mute, leave);
+const settings = button('⚙', openSettings, 'button settings-toggle');
+settings.setAttribute('aria-label', 'Settings');
+settings.title = 'Settings';
+topbar.append(brand, status, mute, settings, leave);
 const screen = element('div', 'screen');
 app.append(topbar, screen);
 let room: RoomView | null = null;

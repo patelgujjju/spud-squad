@@ -1,0 +1,301 @@
+import {
+  ACESFilmicToneMapping,
+  Color,
+  DirectionalLight,
+  Fog,
+  HemisphereLight,
+  PCFShadowMap,
+  Scene,
+  Vector3,
+  WebGLRenderer,
+} from 'three';
+import type {
+  GameEvent,
+  Level,
+  PlayerView,
+  ServerMessage,
+  SpudView,
+} from '@spud-squad/shared';
+import { RESPAWN_MS } from '@spud-squad/shared';
+import type { GameRenderer, RendererContext } from '../renderer.js';
+import { getQuality } from '../quality.js';
+import type { QualityMode } from '../quality.js';
+import { AdaptiveQuality } from './performance.js';
+import { FollowCamera } from './camera.js';
+import { Resources } from './resources.js';
+import { SpudModel } from './spud.js';
+import { FactoryWorld } from './world.js';
+import { FactoryParticles } from './particles.js';
+import { PressHands3D } from './hands.js';
+
+export class ThreeLevelRenderer implements GameRenderer {
+  private gpu: WebGLRenderer | null = null;
+  private scene = new Scene();
+  private resources = new Resources();
+  private avatar = new SpudModel(this.resources);
+  private view = new FollowCamera();
+  private particles = new FactoryParticles();
+  private hands = new PressHands3D(this.resources);
+  private world: FactoryWorld | null = null;
+  private light = new DirectionalLight(0xffe1af, 2.5);
+  private quality = new AdaptiveQuality(getQuality());
+  private state: SpudView | null = null;
+  private players: PlayerView[] = [];
+  private startTime = 0;
+  private factor = 1;
+  private observer: ResizeObserver | null = null;
+  private abort = new AbortController();
+  private raf = 0;
+  private lastFrame = 0;
+  private frameCount = 0;
+  private destroyed = false;
+  private reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  private point = new Vector3();
+  constructor(private readonly context: RendererContext) {}
+  async init(): Promise<void> {
+    if (this.destroyed) return;
+    const host = this.context.host;
+    this.gpu = new WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance',
+    });
+    this.gpu.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.gpu.setClearColor(0x345859);
+    this.gpu.toneMapping = ACESFilmicToneMapping;
+    this.gpu.toneMappingExposure = 1.0;
+    this.gpu.shadowMap.enabled = true;
+    this.gpu.shadowMap.type = PCFShadowMap;
+    this.gpu.shadowMap.autoUpdate = false;
+    this.gpu.domElement.setAttribute('aria-hidden', 'true');
+    host.append(this.gpu.domElement);
+    this.scene.background = new Color(0x345859);
+    this.scene.fog = new Fog(0x345859, 14, 42);
+    this.scene.add(new HemisphereLight(0xfff2d9, 0x557b7b, 1.4));
+    this.light.position.set(-3, 9, 5);
+    this.light.castShadow = true;
+    this.light.shadow.mapSize.set(1024, 1024);
+    this.light.shadow.camera.left = -8;
+    this.light.shadow.camera.right = 8;
+    this.light.shadow.camera.top = 8;
+    this.light.shadow.camera.bottom = -8;
+    this.light.shadow.camera.near = 0.1;
+    this.light.shadow.camera.far = 28;
+    this.light.shadow.normalBias = 0.035;
+    this.light.shadow.bias = -0.0003;
+    this.scene.add(
+      this.light,
+      this.light.target,
+      this.avatar.root,
+      this.particles.node,
+      this.hands.root,
+    );
+    const ground = this.resources.mesh(
+      this.resources.box(120, 0.2, 120),
+      this.resources.toon(0x476562),
+      0,
+      -0.75,
+      0,
+    );
+    ground.castShadow = false;
+    this.scene.add(ground);
+    this.observer = new ResizeObserver(() => this.resize());
+    this.observer.observe(host);
+    window.addEventListener(
+      'spud-quality-change',
+      (event) => {
+        this.quality.setMode((event as CustomEvent<QualityMode>).detail);
+        this.applyQuality();
+      },
+      { signal: this.abort.signal },
+    );
+    this.reduced.addEventListener('change', () => this.applyQuality(), {
+      signal: this.abort.signal,
+    });
+    host.dataset.renderer = 'three';
+    this.resize();
+    this.applyQuality();
+    this.visibility();
+  }
+  setLevel(
+    level: Level,
+    start: Extract<ServerMessage, { type: 'levelStart' }>,
+  ): void {
+    if (this.world) {
+      this.scene.remove(this.world.root);
+      this.world.dispose();
+    }
+    this.world = new FactoryWorld(level, this.resources);
+    this.scene.add(this.world.root);
+    this.view.setLevel(level);
+    this.startTime = start.startTime;
+    this.factor = start.groupFactor;
+    this.state = null;
+    this.avatar.root.visible = false;
+    this.hands.clear();
+    this.frameCount = 0;
+    this.context.host.dataset.ready = 'false';
+    this.resize();
+  }
+  setPlayers(players: PlayerView[]): void {
+    this.players = players;
+  }
+  setState(state: SpudView): void {
+    if (state.status === 'dead' && this.state?.status !== 'dead')
+      this.avatar.die(
+        (state.respawnAt ?? state.time + RESPAWN_MS) - RESPAWN_MS,
+      );
+    if (this.state?.status === 'dead' && state.status === 'playing')
+      this.avatar.respawn(state.time);
+    this.state = state;
+    this.context.host.dataset.position = state.position.join(',');
+    this.context.host.dataset.status = state.status;
+    this.context.host.setAttribute(
+      'aria-label',
+      `3D factory grid. Spud at column ${state.position[0]}, row ${state.position[1]}. ${state.status === 'dead' ? 'Respawning.' : `${state.deaths} deaths.`}`,
+    );
+  }
+  event(event: GameEvent): void {
+    const audio = this.context.audio;
+    if (event.type === 'hop') audio.play('step');
+    if (event.type === 'checkpoint') audio.play('checkpoint');
+    if (event.type === 'finish') audio.play('win');
+    if (event.type === 'death') {
+      audio.play('death');
+      this.avatar.die(event.t);
+      if (!this.reduced.matches) {
+        this.point.set(event.at[0], 0.38, event.at[1]);
+        this.particles.burst('spark', this.point, 17);
+        this.particles.burst('puff', this.point, 13);
+      }
+    }
+    if (event.type === 'respawn' && !this.reduced.matches) {
+      this.point.set(event.at[0], 0.22, event.at[1]);
+      this.particles.burst('puff', this.point, 16);
+    }
+    if (event.type === 'press' && this.state) {
+      const player = this.players.find(
+        (member) => member.id === event.playerId,
+      );
+      if (player)
+        this.hands.add(
+          player.nickname,
+          player.color,
+          event.button,
+          performance.now(),
+        );
+    }
+  }
+  private applyQuality(): void {
+    if (!this.gpu) return;
+    this.gpu.shadowMap.enabled = this.quality.detailed;
+    this.gpu.shadowMap.needsUpdate = true;
+    this.particles.node.visible =
+      this.quality.detailed && !this.reduced.matches;
+    this.context.host.dataset.quality = this.quality.detailed ? 'high' : 'low';
+  }
+  private resize(): void {
+    if (!this.gpu || this.destroyed) return;
+    const width = Math.max(1, this.context.host.clientWidth);
+    const height = Math.max(1, this.context.host.clientHeight);
+    this.gpu.setSize(width, height);
+    this.view.resize(width, height);
+    this.particles.resize(height, this.gpu.getPixelRatio());
+  }
+  private frame = (timestamp: number): void => {
+    this.raf = 0;
+    if (this.destroyed || document.hidden || !this.gpu) return;
+    const rawDt = this.lastFrame ? (timestamp - this.lastFrame) / 1000 : 1 / 60;
+    this.lastFrame = timestamp;
+    const dt = Math.min(0.08, rawDt);
+    if (this.state && this.world) {
+      const now = Math.max(0, this.context.clock.now() - this.startTime);
+      const state = this.state;
+      const hop = state.hop;
+      const reduced = this.reduced.matches;
+      const progress =
+        hop && !reduced
+          ? Math.min(
+              1,
+              Math.max(0, (now - hop.startT) / (hop.endT - hop.startT)),
+            )
+          : 1;
+      const x = hop
+        ? hop.from[0] + (hop.to[0] - hop.from[0]) * progress
+        : state.position[0];
+      const z = hop
+        ? hop.from[1] + (hop.to[1] - hop.from[1]) * progress
+        : state.position[1];
+      this.avatar.root.visible = true;
+      this.avatar.root.position.set(x, 0, z);
+      const panic = this.world.level.objects.some(
+        (object) =>
+          object.type === 'slicer' &&
+          Math.abs(object.at[0] - state.position[0]) +
+            Math.abs(object.at[1] - state.position[1]) <=
+            1,
+      );
+      this.avatar.frame(
+        now,
+        hop && progress < 1 ? progress : 0,
+        state.facing,
+        panic,
+        state.status === 'dead',
+        reduced,
+      );
+      this.world.frame(
+        state,
+        now,
+        dt,
+        this.factor,
+        reduced,
+        this.particles,
+        () => this.context.audio.play('slicer'),
+      );
+      this.view.frame(x, z, dt, reduced);
+      this.hands.frame(timestamp, reduced, x, z);
+      this.point.set(x, 0, z);
+      this.particles.frame(dt, now, this.point);
+      this.light.target.position.set(x, 0, z);
+      this.light.position.set(x - 3, 9, z + 5);
+      if (this.quality.detailed && this.frameCount % 2 === 0)
+        this.gpu.shadowMap.needsUpdate = true;
+      if (this.frameCount > 3 && this.quality.frame(rawDt)) this.applyQuality();
+      this.gpu.render(this.scene, this.view.camera);
+      this.frameCount++;
+      if (this.frameCount === 3) this.context.host.dataset.ready = 'true';
+      if (this.frameCount % 60 === 0) {
+        this.context.host.dataset.fps = this.quality.fps.toFixed(0);
+        this.context.host.dataset.drawCalls = String(
+          this.gpu.info.render.calls,
+        );
+      }
+    }
+    this.raf = requestAnimationFrame(this.frame);
+  };
+  visibility(): void {
+    if (this.destroyed || !this.gpu) return;
+    if (document.hidden) {
+      cancelAnimationFrame(this.raf);
+      this.raf = 0;
+      this.lastFrame = 0;
+      this.quality.resetSample();
+    } else if (!this.raf) this.raf = requestAnimationFrame(this.frame);
+  }
+  destroy(): void {
+    this.destroyed = true;
+    cancelAnimationFrame(this.raf);
+    this.observer?.disconnect();
+    this.abort.abort();
+    this.hands.clear();
+    this.world?.dispose();
+    this.particles.dispose();
+    this.resources.dispose();
+    this.scene.clear();
+    this.light.shadow.dispose();
+    this.gpu?.dispose();
+    this.gpu?.forceContextLoss();
+    this.gpu?.domElement.remove();
+    this.gpu = null;
+  }
+}

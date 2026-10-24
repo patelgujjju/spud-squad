@@ -35,7 +35,7 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 - Squash-and-stretch hop on every step; a tiny squeak per footstep.
 - Panic face and arm-flail when a hazard is one tile away.
 - On death he "poofs" into a neat pile of cartoon fries with a sad face, then respawns from a basket at the last checkpoint. No gore.
-- Each press shows a small coloured hand from the edge of the screen with the presser's name, so everyone sees who pushed him.
+- Each press shows a small coloured 3D hand beside Spud, with the presser's name, so everyone sees who pushed him.
 - Idle animations: looks at the camera, checks a tiny watch, waves.
 
 **The factory (one area per world):**
@@ -48,7 +48,11 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 | 4 | Fryer Floor | Bubbling oil pits, salt shakers, heat haze |
 | 5 | Night Shift | Dark packing warehouse, flashlight cones, delivery trucks |
 
-**Art direction:** flat 2D vector art with thick outlines, top-down 3/4 view on a 64 px tile grid, warm yellow and orange palette, readable at phone size. Each hazard has a clear "about to fire" warning frame so players can react.
+**Art direction:** a procedural, low-poly 3D toon factory, with warm directional light, soft shadows, a light edge fog and restrained dust. Spud is a lumpy brown oval with darker spots, a soft outline, huge eyes, eyebrows, stubby walking legs and a nervous sweat drop. Movement stretches and squashes him; nearby slicers widen his eyes and make him wobble. Idle blinks and a glance toward the camera keep him alive between presses. Death scatters nine golden fry sticks that bounce into a sad-faced pile, followed by a puff and a checkpoint respawn pop. All geometry is built in code; no external models or textures.
+
+The fixed camera sits about 55 degrees above the floor with slight perspective. It smoothly follows Spud and zooms to cover the game area on each screen size. Long boards pan on phones to keep tiles large and legible. Floors are bevelled, worn blocks; walls are chunky machines with pipes, bolts and warning stripes. Saw blades rise and spin, flash red and shake during the shared engine's 400 ms warning, and throw sparks on a hit. Conveyors use moving rollers and arrows; cards float and spin; doors slide upward; exits are luminous chutes; Golden Chips spin and sparkle. Shape and colour both distinguish each tile.
+
+The drawing layer uses a `GameRenderer` interface and reads authoritative snapshots/events without simulating movement or collisions. Repeated factory parts are instanced and geometries/materials are cached. Pixel ratio is capped at 2. Graphics Settings offer Auto, High and Low; Auto disables shadows and particles after a measured frame rate below 45 fps for three seconds. Reduced motion removes ambient motion, particles and exaggerated animation while preserving hazard phases and positions. The client targets 60 fps on a mid-range Android phone and under 400 KiB of gzipped JavaScript.
 
 **Sound:** squeaky footsteps, Spud's scream, oil sizzles, blade whooshes, a happy jingle on escape. Music: one short upbeat loop per world, with a mute switch.
 
@@ -72,9 +76,9 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 - Each implementation stage ends with exact commands the user can run to commit that stage.
 - Stage 2 uses the WebSocket Hibernation API and per-socket attachments. Lobby/results restore room/player information from SQLite on wake-up, with no recurring idle loop. Results are saved once on completion. All gameplay rules use the shared engine. Independent, hashed-IP guards enforce the rolling join-attempt limit across room codes without a room directory.
 - The 10 Hz gameplay loop stops on completion or when no connected players remain. If everyone disconnects, or a deployment unexpectedly discards a live object, the in-memory attempt ends and the room returns to the lobby. Reconnect grace preserves identity; an attempt cannot resume after its live memory is discarded.
-- Stage 3 adds immediate multi-pointer controls, gesture protection confined to gameplay, optional Screen Wake Lock, first-gesture Web Audio effects and mute, PixiJS blob/blade/fry/hand art, portrait and landscape layouts, and large named results awards. Browser checks cover 360×740, 390×844 and 1366×768. A host `next` action carries the crew's Results readiness into the next prototype level.
+- Stage 3 adds immediate multi-pointer controls, gesture protection confined to gameplay, optional Screen Wake Lock, first-gesture Web Audio effects and mute, procedural Three.js potato/blade/fry/hand art, portrait and landscape layouts, and large named results awards. Browser checks cover 360×740, 390×844 and 1366×768. A host `next` action carries the crew's Results readiness into the next prototype level.
 
-Every player sees the whole level on their own screen, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
+Every player sees the same level on their own screen, with a camera following Spud, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
 
 ### Movement rules
 
@@ -412,7 +416,7 @@ Players load the game from the CDN, join through the Worker, then talk only to t
 
 | Part | Choice | Why |
 | --- | --- | --- |
-| Game client | Vite + TypeScript; PixiJS for drawing the level; plain HTML and CSS for menus and buttons | Fast on cheap phones, small download, no install |
+| Game client | Vite + TypeScript; Three.js behind a renderer interface for the procedural 3D level; plain HTML and CSS for menus and buttons | Instanced tiles, shared materials, adaptive quality, small download, no install |
 | Shared game logic | One TypeScript package used by both client and server | The same rules everywhere; Solo Practice runs fully offline |
 | Hosting for the site | Cloudflare Pages (global CDN) | Free tier, fast in India and abroad |
 | Room server | Cloudflare Workers + Durable Objects, one object per room, WebSockets | Rooms scale automatically; no servers to manage |
@@ -520,7 +524,7 @@ Source of truth: docs/design.md. If code and the doc disagree, stop and ask.
 Repo (pnpm workspaces):
 - packages/shared: pure TypeScript game logic. No DOM, no network, no Date.now(); time is always passed in. Deterministic given (level, seed, presses).
   API: createLevelState(level, seed, playerIds), applyPress(state, playerId, button, t), advance(state, untilT) -> { state, events }.
-- apps/client: Vite + TypeScript + PixiJS for the level; HTML/CSS for menus and buttons.
+- apps/client: Vite + TypeScript + Three.js for the level; HTML/CSS for menus and buttons. Drawing lives behind the GameRenderer interface; shared logic and server messages stay independent of rendering.
 - apps/server: Cloudflare Worker + one SQLite-backed Durable Object per room; authoritative; uses packages/shared.
 - levels/: one JSON file per level; schema in packages/shared/src/levelSchema.ts (zod).
 - tools/: solver, level validator, dev-only level editor, load-test bots.

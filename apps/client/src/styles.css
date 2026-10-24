@@ -70,6 +70,10 @@ button,
   min-height: 44px;
 }
 .topbar-room {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11px;
   letter-spacing: 1px;
   margin-right: auto;
@@ -107,13 +111,78 @@ button,
   text-decoration: underline;
 }
 .mute,
-.leave {
+.leave,
+.settings-toggle {
   font-size: 12px;
   background: #244c50;
   color: var(--cream);
   border-color: #527277;
   box-shadow: none;
   padding: 8px 12px;
+}
+.settings-toggle {
+  min-width: 44px;
+  padding: 7px;
+  font-size: 20px;
+}
+.settings-dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: 26px;
+  border: 3px solid var(--ink);
+  border-radius: 20px;
+  color: var(--ink);
+  background: var(--cream);
+  box-shadow: 0 8px 0 #102e32;
+}
+.settings-dialog::backdrop {
+  background: #102e32b8;
+}
+.settings-dialog h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+.settings-dialog > .button {
+  width: 100%;
+  margin-top: 18px;
+}
+.quality-options {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.quality-options legend {
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.quality-choice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 12px;
+  background: #e9eddc;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.quality-choice:has(input:checked) {
+  border-color: #b2832a;
+  background: #ffe3a0;
+}
+.quality-choice input {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  flex-shrink: 0;
+  accent-color: #8c581d;
+}
+.quality-choice strong,
+.quality-choice .tiny {
+  display: block;
+}
+.quality-choice .tiny {
+  margin-top: 4px;
+  font-weight: 400;
 }
 .eyebrow {
   font-size: 11px;
@@ -505,8 +574,21 @@ input {
   }
   .mute,
   .leave {
-    font-size: 10px;
-    padding: 7px 8px;
+    font-size: 0;
+    width: 44px;
+    min-width: 44px;
+    padding: 7px;
+  }
+  .mute::before {
+    content: '♪';
+    font-size: 20px;
+  }
+  .mute[aria-pressed='true']::before {
+    content: '♩̸';
+  }
+  .leave::before {
+    content: '↪';
+    font-size: 20px;
   }
   .home-screen {
     padding: 28px 18px;

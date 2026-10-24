@@ -7,7 +7,7 @@ import type {
 } from '@spud-squad/shared';
 import type { GameAudio } from '../audio.js';
 import type { ServerClock } from '../clock.js';
-import type { LevelRenderer } from '../game/renderer.js';
+import type { GameRenderer } from '../game/renderer.js';
 import { GameControls } from '../game/controls.js';
 import { element, playerName, timeLabel } from '../dom.js';
 import { HINTS, levelById } from '../levels.js';
@@ -22,7 +22,7 @@ export class PlayScreen {
   private connection = element('div', 'connection-banner', 'Connecting…');
   private roster = element('aside', 'play-roster');
   private controls: GameControls;
-  private renderer: LevelRenderer | null = null;
+  private renderer: GameRenderer | null = null;
   private level: Extract<ServerMessage, { type: 'levelStart' }> | null = null;
   private state: SpudView | null = null;
   private room: RoomView;
@@ -74,9 +74,18 @@ export class PlayScreen {
   }
   private async init(): Promise<void> {
     try {
-      const { LevelRenderer } = await import('../game/renderer.js');
+      const { createRenderer } = await import('../game/renderer.js');
       if (this.destroyed) return;
-      this.renderer = new LevelRenderer(this.host, this.clock, this.audio);
+      const renderer = await createRenderer({
+        host: this.host,
+        clock: this.clock,
+        audio: this.audio,
+      });
+      if (this.destroyed) {
+        renderer.destroy();
+        return;
+      }
+      this.renderer = renderer;
       await this.renderer.init();
       if (this.destroyed) return;
       this.host.querySelector('.board-loading')?.remove();

@@ -7,7 +7,7 @@ Source of truth: docs/design.md. If code and the doc disagree, stop and ask.
 Repo (pnpm workspaces):
 - packages/shared: pure TypeScript game logic. No DOM, no network, no Date.now(); time is always passed in. Deterministic given (level, seed, presses).
   API: createLevelState(level, seed, playerIds), applyPress(state, playerId, button, t), advance(state, untilT) -> { state, events }.
-- apps/client: Vite + TypeScript + PixiJS for the level; HTML/CSS for menus and buttons.
+- apps/client: Vite + TypeScript + Three.js for the level; HTML/CSS for menus and buttons. Drawing lives behind the GameRenderer interface; shared logic and server messages stay independent of rendering.
 - apps/server: Cloudflare Worker + one SQLite-backed Durable Object per room; authoritative; uses packages/shared.
 - levels/: one JSON file per level; schema in packages/shared/src/levelSchema.ts (zod).
 - tools/: solver, level validator, dev-only level editor, load-test bots.

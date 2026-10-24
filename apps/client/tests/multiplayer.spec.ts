@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 
+// Continuous software WebGL and per-action trace screenshots compete for the GPU.
+// Explicit Playwright screenshots still cover each viewport and the death effect.
+test.use({ trace: 'off' });
+
 type Feedback = {
   requested: number;
   released: number;
@@ -14,6 +18,8 @@ declare global {
 }
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
+    // Software WebGL smoke tests exercise Low; the factory exports exercise High.
+    localStorage.setItem('spud.graphics-quality', 'low');
     const feedback = { requested: 0, released: 0, vibrations: 0, audio: 0 };
     window.feedback = feedback;
     Object.defineProperty(navigator, 'wakeLock', {
@@ -67,6 +73,9 @@ async function partner(
     extraHTTPHeaders: { 'CF-Connecting-IP': `test-${crypto.randomUUID()}` },
     ...(viewport ? { viewport, hasTouch: true, isMobile: true } : {}),
   });
+  await context.addInitScript(() =>
+    localStorage.setItem('spud.graphics-quality', 'low'),
+  );
   const page = await context.newPage();
   await page.goto(`http://127.0.0.1:5173/r/${code}`);
   await page.getByLabel('Your nickname').fill(name);
@@ -82,6 +91,14 @@ async function start(host: Page, guest: Page, level = '1-1'): Promise<void> {
   await host.getByRole('button', { name: 'Start level' }).click();
   for (const page of [host, guest]) {
     await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.getByTestId('board')).toHaveAttribute(
+      'data-renderer',
+      'three',
+    );
+    await expect(page.getByTestId('board')).toHaveAttribute(
+      'data-ready',
+      'true',
+    );
     await expect(page.locator('.game-button').first()).toBeEnabled();
   }
 }
@@ -230,7 +247,7 @@ test('refresh preserves buttons; multi-pointer feedback is immediate; keyboard r
         nodes.map((node) => (node as HTMLElement).dataset.button),
       );
     await page.reload();
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('.game-button').first()).toBeEnabled();
     expect(
       await page
@@ -349,16 +366,8 @@ test('a real slicer death becomes fries, then respawns at the checkpoint', async
       ['RIGHT', '4,1'],
     ] as const)
       await move([page, guest.page], button, position);
-    await expect
-      .poll(
-        async () => {
-          const label = (await page.locator('.play-timer').textContent())!;
-          const [minutes, seconds] = label.split(':').map(Number);
-          return (minutes! * 60 + seconds!) % 3 < 0.5;
-        },
-        { intervals: [50] },
-      )
-      .toBe(true);
+    // Staying on the blade causes a real death within one full on/off cycle,
+    // regardless of when the browser finishes compiling the drawing shaders.
     await move([page, guest.page], 'RIGHT', '5,1');
     await expect(page.getByTestId('board')).toHaveAttribute(
       'data-status',
