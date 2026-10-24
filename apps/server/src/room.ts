@@ -408,6 +408,10 @@ export class Room extends DurableObject<Env> {
       this.broadcastRoom();
       return;
     }
+    if (message.action === 'next' && this.data.phase !== 'results') {
+      this.error(ws, 'INVALID_ACTION', 'Finish the current level first');
+      return;
+    }
     const connected = [...this.players.values()].filter(
       (member) => member.connectionId !== null,
     );
@@ -422,6 +426,11 @@ export class Room extends DurableObject<Env> {
         'At least two players must join and everyone must be ready',
       );
       return;
+    }
+    if (message.action === 'next') {
+      const ids = [...levels.keys()];
+      this.data.selectedLevel =
+        ids[(ids.indexOf(this.data.selectedLevel) + 1) % ids.length]!;
     }
     const seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
     this.game = {
@@ -463,10 +472,15 @@ export class Room extends DurableObject<Env> {
   }
   private transition(result: Transition): void {
     if (!this.game || !this.data) return;
+    const previous = this.game.state;
+    const landed =
+      previous.position[0] !== result.state.position[0] ||
+      previous.position[1] !== result.state.position[1] ||
+      (previous.hop !== null && result.state.hop === null);
     this.game.state = result.state;
     for (const event of result.events)
       this.broadcast({ type: 'event', event, serverTime: Date.now() });
-    if (result.events.length) this.sendSpud();
+    if (result.events.length || landed) this.sendSpud();
     if (result.state.status === 'finished') {
       const results = {
         ...getResults(result.state),

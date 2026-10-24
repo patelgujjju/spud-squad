@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @spud-squad/shared build && vite --host 0.0.0.0",
+    "build": "tsc -p tsconfig.json && vite build && node ../../tools/check-bundle.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "playwright test",
+    "preview": "vite preview --host 0.0.0.0"
+  },
   "dependencies": {
     "@spud-squad/shared": "workspace:*",
     "pixi.js": "8.22.0"

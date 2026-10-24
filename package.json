@@ -11,6 +11,7 @@
     "test": "pnpm test:shared && pnpm test:server",
     "test:shared": "vitest run",
     "test:server": "pnpm --filter @spud-squad/shared build && pnpm --filter @spud-squad/server test",
+    "test:client": "pnpm --filter @spud-squad/client test",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "pnpm -r --if-present run build",

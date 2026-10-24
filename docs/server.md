@@ -22,6 +22,7 @@ Send `join` first, then other messages. Only the placeholder skin `spud` is curr
 { "type": "ready", "ready": true }
 { "type": "host", "action": "pickLevel", "levelId": "2-1" }
 { "type": "host", "action": "start" }
+{ "type": "host", "action": "next" }
 { "type": "host", "action": "lock", "locked": true }
 { "type": "host", "action": "kick", "playerId": "player-uuid" }
 { "type": "ping", "timestamp": 1234567890 }
@@ -42,11 +43,11 @@ Sequence numbers must increase per player. `welcome.nextSeq` tells a reconnected
 - `pong`: the original timestamp and server time for clock synchronization.
 - `error`: a machine-readable code and display message. Expected failures do not crash the room.
 
-Times in `levelStart.startTime`, `serverTime` and reconnect deadlines are epoch milliseconds. Hop, event and simulation times are elapsed milliseconds from level start. Only changed state/events are broadcast; a quiet running level still advances at 10 Hz.
+Times in `levelStart.startTime`, `serverTime` and reconnect deadlines are epoch milliseconds. Hop, event and simulation times are elapsed milliseconds from level start. Only changed state/events are broadcast; ordinary floor landings also send their settled position even without a separate engine event. A quiet running level still advances at 10 Hz.
 
 ## Readiness and membership
 
-The first joined player is host. Start requires at least two connected players and everyone ready; disconnected seats must reconnect or expire before another attempt starts. Level selection clears readiness. New players join only between levels. The host can lock or kick; kicking invalidates the target's token.
+The first joined player is host. Start requires at least two connected players and everyone ready; disconnected seats must reconnect or expire before another attempt starts. Level selection clears readiness. On Results, `next` checks those same ready votes and starts the next prototype level (wrapping after 2-1). New players join only between levels. The host can lock or kick; kicking invalidates the target's token.
 
 On disconnect, the longest-present connected player becomes host immediately. The departed player's seat and buttons stay reserved for exactly 60 seconds. A deadline alarm removes expired players; shared `releaseButtons` preserves survivors' current jobs and assigns orphaned buttons to the least-loaded connected survivor. Completed-player statistics remain in the live engine for awards.
 

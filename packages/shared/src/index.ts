@@ -25,3 +25,4 @@ export type {
 } from './types.js';
 export * from './protocol.js';
 export { releaseButtons } from './releaseButtons.js';
+export { serverMessageSchema } from './serverMessageSchema.js';

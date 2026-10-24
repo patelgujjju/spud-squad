@@ -72,6 +72,7 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 - Each implementation stage ends with exact commands the user can run to commit that stage.
 - Stage 2 uses the WebSocket Hibernation API and per-socket attachments. Lobby/results restore room/player information from SQLite on wake-up, with no recurring idle loop. Results are saved once on completion. All gameplay rules use the shared engine. Independent, hashed-IP guards enforce the rolling join-attempt limit across room codes without a room directory.
 - The 10 Hz gameplay loop stops on completion or when no connected players remain. If everyone disconnects, or a deployment unexpectedly discards a live object, the in-memory attempt ends and the room returns to the lobby. Reconnect grace preserves identity; an attempt cannot resume after its live memory is discarded.
+- Stage 3 adds immediate multi-pointer controls, gesture protection confined to gameplay, optional Screen Wake Lock, first-gesture Web Audio effects and mute, PixiJS blob/blade/fry/hand art, portrait and landscape layouts, and large named results awards. Browser checks cover 360×740, 390×844 and 1366×768. A host `next` action carries the crew's Results readiness into the next prototype level.
 
 Every player sees the whole level on their own screen, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
 

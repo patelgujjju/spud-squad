@@ -433,6 +433,15 @@ describe('authoritative presses and host actions', () => {
     expect(await inspect(code, (room) => room.game?.state.position)).toEqual([
       2, 1,
     ]);
+    expect(
+      (
+        await a.peer.take(
+          'spud',
+          (message) =>
+            message.state.position[0] === 2 && message.state.hop === null,
+        )
+      ).state.position,
+    ).toEqual([2, 1]);
   });
   it('drops presses above fifteen per rolling second and rejects replayed sequence numbers', async () => {
     const code = await createRoom();

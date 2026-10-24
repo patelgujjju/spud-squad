@@ -1,6 +1,7 @@
 import { env as bindings, exports as workerExports } from 'cloudflare:workers';
 import { runInDurableObject } from 'cloudflare:test';
 import { expect } from 'vitest';
+import { serverMessageSchema } from '@spud-squad/shared';
 import type {
   ClientMessage,
   LevelState,
@@ -51,7 +52,9 @@ export class Peer {
   }[] = [];
   constructor(readonly ws: WebSocket) {
     ws.addEventListener('message', (event: MessageEvent) => {
-      const message = JSON.parse(String(event.data)) as ServerMessage;
+      const message = serverMessageSchema.parse(
+        JSON.parse(String(event.data)) as unknown,
+      );
       const index = this.waiters.findIndex((waiter) =>
         waiter.predicate(message),
       );

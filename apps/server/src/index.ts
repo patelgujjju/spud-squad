@@ -9,6 +9,8 @@ const createSchema = z.strictObject({ mode: z.literal('campaign').optional() });
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    if (url.pathname === '/health' && request.method === 'GET')
+      return Response.json({ ok: true });
     if (url.pathname === '/rooms' && request.method === 'POST') {
       try {
         if (!createSchema.safeParse(await readSmallJson(request)).success)

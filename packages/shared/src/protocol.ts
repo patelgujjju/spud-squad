@@ -31,7 +31,7 @@ export const clientMessageSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('ready'), ready: z.boolean() }),
   z.strictObject({
     type: z.literal('host'),
-    action: z.enum(['start', 'pickLevel', 'kick', 'lock']),
+    action: z.enum(['start', 'next', 'pickLevel', 'kick', 'lock']),
     levelId: z.string().max(8).optional(),
     playerId: z.string().max(64).optional(),
     locked: z.boolean().optional(),
