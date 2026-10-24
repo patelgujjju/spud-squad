@@ -48,11 +48,15 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 | 4 | Fryer Floor | Bubbling oil pits, salt shakers, heat haze |
 | 5 | Night Shift | Dark packing warehouse, flashlight cones, delivery trucks |
 
-**Art direction:** a procedural, low-poly 3D toon factory, with warm directional light, soft shadows, a light edge fog and restrained dust. Spud is a lumpy brown oval with darker spots, a soft outline, huge eyes, eyebrows, stubby walking legs and a nervous sweat drop. Movement stretches and squashes him; nearby slicers widen his eyes and make him wobble. Idle blinks and a glance toward the camera keep him alive between presses. Death scatters nine golden fry sticks that bounce into a sad-faced pile, followed by a puff and a checkpoint respawn pop. All geometry is built in code; no external models or textures.
+**Art direction: bright, toy-like floating dioramas.** The walkable floor and Spud are the heroes. The room sits on a thick rounded base with a soft drop shadow over a smooth vertical gradient: World 1 uses #7AD7F0 to #C9F1FF. A fixed camera about 62 degrees above the floor, with a narrow 28-degree field of view, fits the entire current room plus a small margin on phones and laptops. It never crops corridors or pans away from part of the room.
 
-The fixed camera sits about 55 degrees above the floor with slight perspective. It smoothly follows Spud and zooms to cover the game area on each screen size. Long boards pan on phones to keep tiles large and legible. Floors are bevelled, worn blocks; walls are chunky machines with pipes, bolts and warning stripes. Saw blades rise and spin, flash red and shake during the shared engine's 400 ms warning, and throw sparks on a hit. Conveyors use moving rollers and arrows; cards float and spin; doors slide upward; exits are luminous chutes; Golden Chips spin and sparkle. Shape and colour both distinguish each tile.
+World 1 (Wash and Sort) uses #E9FBF8 slightly raised floor tiles with thin #BFE9E3 grout. Walls become low #1FB5A8 counters with #FFC93C trim and #0F5E59 shadow sides/corners. Counters and their decoration stay below 0.35 tile high. Repeated orange pipes are removed; at most one small bolt panel, gauge or pipe appears per six wall tiles, never on the path. Shapes are chunky, rounded and bevelled. Thick soft outlines belong only to Spud and interactive objects.
 
-The drawing layer uses a `GameRenderer` interface and reads authoritative snapshots/events without simulating movement or collisions. Repeated factory parts are instanced and geometries/materials are cached. Pixel ratio is capped at 2. Graphics Settings offer Auto, High and Low; Auto disables shadows and particles after a measured frame rate below 45 fps for three seconds. Reduced motion removes ambient motion, particles and exaggerated animation while preserving hazard phases and positions. The client targets 60 fps on a mid-range Android phone and under 400 KiB of gzipped JavaScript.
+Danger is #FF4D4D, including the shared engine's 400 ms slicer warning and a brief death flash. Rewards and sparkle stars are #FFD23F. The exit is a glowing #6BFF9E chute with a big arrow and no text label. Spud uses #C98A4B skin, #E8B07A highlights, #8A5A2B spots, pure white eyes, dark directional pupils, eyebrows, stubby walking legs and a sweat drop. He blinks at idle and wobbles with wide eyes beside a slicer. Each hop squashes/stretches him and leaves a dust puff. Death scatters nine bouncing fry sticks with a sad face, adds a small screen shake, then a checkpoint puff and respawn pop. Golden Chips produce sparkle bursts; exit confetti carries through into Results; button presses produce a ripple.
+
+A warm key casts soft shadows, with cool fill and a rim on Spud. Dark counter feet/corners provide baked contact shading in Low quality. Gentle selective bloom affects only the exit, chip and warning glow. Repeated geometry is instanced and materials are cached; pixel ratio is capped at 2. Graphics Settings offer Auto, High and Low. Auto disables shadows, bloom and particles after three seconds below 45 fps. Reduced motion suppresses shake, bursts and exaggerated movement while preserving hazard phases and authoritative positions. The target is 60 fps on a mid-range Android phone and less than 400 KiB of gzipped JavaScript. Drawing remains behind `GameRenderer`, without changing simulation or protocol.
+
+**UI art:** self-hosted Lilita One for headings and button labels, Nunito for body text. Panels use cream #FFF6E6 and dark brown #2A1E14 text. Candy buttons have a 3 px dark outline and a bottom shadow that compresses on press; each player's controls use their saturated player colour. Phones allocate 68% of viewport height to the game and 32% to controls, with a slim translucent room/timer/death/icon overlay. Laptops use floating player chips at top-left, no side panel, and centered controls with a maximum 720 px button grid. All current models and effects are procedural. Font sources/licences are recorded in `docs/assets.md`; future third-party models may only be CC0 assets from Kenney or Quaternius with an entry in that ledger.
 
 **Sound:** squeaky footsteps, Spud's scream, oil sizzles, blade whooshes, a happy jingle on escape. Music: one short upbeat loop per world, with a mute switch.
 
@@ -61,7 +65,7 @@ The drawing layer uses a `GameRenderer` interface and reads authoritative snapsh
 **IP and naming checks before launch:**
 
 - All art, sounds, music, names and levels must be made by us or properly licensed (with commercial rights for any AI-generated or stock assets).
-- Spud must not resemble Mr. Potato Head (a Hasbro brand): no plug-in plastic face parts, no toy look.
+- Spud must not resemble Mr. Potato Head (a Hasbro brand): avoid plug-in plastic face parts and recognisable branded toy features.
 - "Spud Squad" is a placeholder. Search the Indian trademark registry and the USPTO for the final name, and check that the .com domain is free. Backups: "Spud Panic", "Tater Trouble", "Fry Escape".
 
 ## Core gameplay
@@ -78,7 +82,7 @@ The drawing layer uses a `GameRenderer` interface and reads authoritative snapsh
 - The 10 Hz gameplay loop stops on completion or when no connected players remain. If everyone disconnects, or a deployment unexpectedly discards a live object, the in-memory attempt ends and the room returns to the lobby. Reconnect grace preserves identity; an attempt cannot resume after its live memory is discarded.
 - Stage 3 adds immediate multi-pointer controls, gesture protection confined to gameplay, optional Screen Wake Lock, first-gesture Web Audio effects and mute, procedural Three.js potato/blade/fry/hand art, portrait and landscape layouts, and large named results awards. Browser checks cover 360×740, 390×844 and 1366×768. A host `next` action carries the crew's Results readiness into the next prototype level.
 
-Every player sees the same level on their own screen, with a camera following Spud, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
+Every player sees the whole room on their own screen, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
 
 ### Movement rules
 
@@ -349,9 +353,9 @@ A new player must go from opening a shared link to pressing their first button i
 
 | Device | Layout |
 | --- | --- |
-| Phone, portrait (main target) | Top 60%: the level, auto-zoomed to fit the room around Spud. Bottom 40%: your buttons, as large as possible (1 button = full width; 2 = side by side; 3 = two on top, one below). Top strip: timer, deaths, pause menu |
-| Phone, landscape | Level on the left 65%, buttons stacked on the right |
-| Laptop | Level large in the centre; your buttons below it with keyboard hints on each (arrows, Space, Shift); player list on the right showing who pressed last |
+| Phone, portrait (main target) | Whole floating room in the top 68%; saturated player-colour candy controls in the bottom 32%. Room code, timer, deaths and icons share a slim translucent overlay. One control fills the row; two or three sit side by side. |
+| Phone, landscape | Whole floating room above a compact horizontal control row, retaining the 68%/32% height split. |
+| Laptop | Whole floating room with small player chips at top-left; no side panel. Controls are centered underneath, with a maximum 720 px button grid and keyboard hints (arrows, Space, Shift). |
 
 Other players' presses appear as small coloured hands with names around Spud, so everyone can see who is doing what.
 

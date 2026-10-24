@@ -125,6 +125,20 @@ export class GameControls {
     this.refresh();
     const button = this.buttons.get(value)!;
     button.classList.add('is-pressed');
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const ripple = element('i', 'button-ripple');
+      ripple.setAttribute('aria-hidden', 'true');
+      button.append(ripple);
+      void ripple
+        .animate(
+          [
+            { transform: 'translate(-50%,-50%) scale(.1)', opacity: 0.75 },
+            { transform: 'translate(-50%,-50%) scale(2.5)', opacity: 0 },
+          ],
+          { duration: 420, easing: 'ease-out' },
+        )
+        .finished.then(() => ripple.remove());
+    }
     try {
       if (/Android/i.test(navigator.userAgent)) navigator.vibrate?.(12);
     } catch {

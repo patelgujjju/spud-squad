@@ -1,4 +1,5 @@
 import { Group } from 'three';
+import type { Sprite } from 'three';
 import type { Button } from '@spud-squad/shared';
 import { COLORS } from '../../dom.js';
 import { makeLabel } from './labels.js';
@@ -7,6 +8,7 @@ import type { Resources } from './resources.js';
 
 interface Hand {
   group: Group;
+  tag: Sprite;
   born: number;
   dx: number;
   dz: number;
@@ -82,12 +84,19 @@ export class PressHands3D {
     this.root.add(group);
     this.hands.push({
       group,
+      tag: sprite,
       born: now,
       dx,
       dz,
     });
   }
-  frame(now: number, reduced: boolean, x: number, z: number): void {
+  frame(
+    now: number,
+    reduced: boolean,
+    x: number,
+    z: number,
+    worldPixel: number,
+  ): void {
     this.hands = this.hands.filter((hand) => {
       const age = now - hand.born;
       if (age > 850) {
@@ -97,9 +106,10 @@ export class PressHands3D {
       const push = reduced ? 0 : Math.max(0, 1 - age / 180) * 0.23;
       hand.group.position.set(
         x + hand.dx * (0.65 + push),
-        1.05,
+        1.35,
         z + hand.dz * (0.48 + push),
       );
+      hand.tag.scale.set(worldPixel * 128, worldPixel * 32, 1);
       const shrink = reduced ? 1 : Math.min(1, (850 - age) / 130);
       hand.group.scale.setScalar(shrink);
       return true;

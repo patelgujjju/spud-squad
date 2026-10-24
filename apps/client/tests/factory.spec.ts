@@ -40,6 +40,7 @@ async function factory(page: Page, browser: Browser, level: string) {
   await expect(page.getByTestId('board')).toHaveAttribute(
     'data-renderer',
     'three',
+    { timeout: 30_000 },
   );
   await expect(page.getByTestId('board')).toHaveAttribute('data-ready', 'true');
   return { context, guest };
@@ -94,28 +95,37 @@ for (const level of ['1-1', '1-6', '2-1']) {
         await right([page, partner.guest], '8,1');
       }
       await page.bringToFront();
-      // Let the follow camera settle and show the raised blade during its on phase.
+      // Observe the actual drawn blade, with no narrow remote HUD polling window.
       await page.waitForTimeout(900);
       if (level !== '1-1') {
-        await expect
-          .poll(
-            async () => {
-              const [minutes, seconds] = (await page
-                .locator('.play-timer')
-                .textContent())!
-                .split(':')
-                .map(Number);
-              return (minutes! * 60 + seconds!) % 3 < 0.7;
-            },
-            { intervals: [80] },
-          )
-          .toBe(true);
+        await page.waitForFunction(
+          () =>
+            document
+              .querySelector('[data-testid="board"]')
+              ?.getAttribute('data-saw-raised') === 'true',
+          undefined,
+          { timeout: 15_000 },
+        );
       }
       const size = page.viewportSize()!;
       const directory = fileURLToPath(
         new URL('../../../docs/screenshots/', import.meta.url),
       );
       await mkdir(directory, { recursive: true });
+      const game = (await page.locator('.game-top').boundingBox())!;
+      const controls = (await page.locator('.controls').boundingBox())!;
+      if (size.width < 760) {
+        expect(game.height).toBeGreaterThanOrEqual(size.height * 0.66);
+        expect(controls.height).toBeLessThanOrEqual(size.height * 0.34);
+      } else {
+        expect(
+          (await page.locator('.button-grid').boundingBox())!.width,
+        ).toBeLessThanOrEqual(720);
+      }
+      const framing = JSON.parse(
+        (await page.getByTestId('board').getAttribute('data-room-bounds'))!,
+      ) as number[];
+      expect(framing.every((edge) => Math.abs(edge) < 0.95)).toBe(true);
       await page.screenshot({
         path: `${directory}/${level}-${size.width}x${size.height}.png`,
       });

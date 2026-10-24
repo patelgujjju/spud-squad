@@ -1,0 +1,653 @@
+@font-face {
+  font-family: 'Lilita One';
+  src: url('/fonts/lilita-one.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/nunito-variable.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 200 1000;
+}
+:root {
+  font-family: 'Nunito', sans-serif;
+  --ink: #2a1e14;
+  --cream: #fff6e6;
+  --yellow: #ffc93c;
+  color: var(--ink);
+  background: #c9f1ff;
+}
+body {
+  background: linear-gradient(#7ad7f0, #c9f1ff);
+  min-height: 100dvh;
+}
+h1,
+h2,
+h3,
+.brand,
+.button,
+.game-button,
+.level-option,
+.play-level,
+.room-code {
+  font-family: 'Lilita One', sans-serif;
+  font-weight: 400;
+}
+button {
+  font-weight: 400;
+}
+.button,
+.level-option {
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--ink);
+}
+.button:active,
+.level-option:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px var(--ink);
+}
+.button,
+.button.secondary {
+  background: var(--cream);
+}
+.button.primary,
+.level-option.selected {
+  background: var(--yellow);
+}
+.topbar {
+  color: var(--ink);
+  border: 0;
+}
+.brand {
+  color: var(--ink);
+  letter-spacing: -0.4px;
+}
+.mute,
+.leave,
+.settings-toggle {
+  background: #fff6e6b3;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+.topbar-room {
+  font-weight: 900;
+}
+.home-intro,
+.home-tagline,
+.home-copy,
+.eyebrow.light {
+  color: var(--ink);
+}
+.home-title {
+  color: #ffc93c;
+  font-weight: 400;
+  -webkit-text-stroke: 2px #2a1e14;
+  text-shadow: 0 5px #2a1e14;
+  letter-spacing: -3px;
+}
+.home-copy {
+  opacity: 0.78;
+}
+.fine-print,
+.divider,
+.player-state,
+.lobby-hint,
+.award .tiny {
+  color: var(--ink);
+}
+.potato-mark {
+  background: #c98a4b;
+  border-color: var(--ink);
+  box-shadow: inset -10px -8px #8a5a2b;
+}
+.home-card,
+.screen-card,
+.settings-dialog {
+  background: var(--cream);
+  border: 3px solid var(--ink);
+  box-shadow: 0 7px var(--ink);
+}
+.home-card h2,
+.screen-title,
+.settings-dialog h2 {
+  font-weight: 400;
+  letter-spacing: -0.4px;
+}
+input {
+  border-color: #b6a797;
+  color: var(--ink);
+  background: #fffdf5;
+}
+.lobby-player,
+.lobby-head {
+  border-color: #d9cbb5;
+}
+.level-option {
+  background: #ffedc9;
+  color: var(--ink);
+}
+.level-option strong {
+  font-weight: 400;
+  font-size: 20px;
+}
+.level-option.selected {
+  border-color: var(--ink);
+  box-shadow: 0 4px var(--ink);
+}
+.player-name {
+  color: color-mix(in srgb, var(--player-color), #2a1e14 26%);
+}
+.award {
+  background: #ffedc9;
+  border-color: #cbb496;
+  border-radius: 18px;
+}
+.award-hero {
+  background: #ffdc6d;
+  border-color: var(--ink);
+}
+.award-feeder {
+  background: #ffbba5;
+  border-color: var(--ink);
+}
+.award-title {
+  font-family: 'Lilita One', sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+}
+.quality-choice {
+  background: #f0e6d4;
+}
+.quality-choice:has(input:checked) {
+  background: #ffdf7a;
+  border-color: var(--ink);
+}
+.toast {
+  color: var(--ink);
+  background: var(--cream);
+  border-color: var(--ink);
+  box-shadow: 0 4px var(--ink);
+}
+
+/* The game occupies the full viewport, with one slim stats bar floating over it. */
+.in-game,
+.in-game #app,
+.in-game .screen {
+  height: 100dvh;
+  overflow: hidden;
+}
+.in-game .topbar {
+  position: fixed;
+  z-index: 20;
+  top: max(12px, env(safe-area-inset-top));
+  left: 24px;
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  height: 48px;
+  padding: 2px 5px 2px 14px;
+  gap: 10px;
+  border-radius: 18px;
+  background: #fff6e6c9;
+  border: 2px solid #2a1e1438;
+  box-shadow: 0 3px 0 #2a1e1412;
+  backdrop-filter: blur(12px);
+}
+.in-game .brand {
+  font-size: 14px;
+  padding: 4px;
+  min-height: 40px;
+}
+.in-game .topbar-room {
+  font-size: 12px;
+  margin: 0;
+}
+.in-game .mute,
+.in-game .leave,
+.in-game .settings-toggle {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0;
+  border-radius: 12px;
+}
+.in-game .mute::before {
+  content: '♪';
+  font-size: 22px;
+}
+.in-game .mute[aria-pressed='true']::before {
+  content: '♩̸';
+}
+.in-game .settings-toggle::before {
+  content: '⚙';
+  font-size: 22px;
+}
+.in-game .leave::before {
+  content: '↪';
+  font-size: 22px;
+}
+.play-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+.play-stats .play-timer {
+  font-size: 16px;
+  font-weight: 900;
+}
+.play-stats .death-counter {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+}
+.play-screen {
+  position: relative;
+  height: 100dvh;
+  padding: 0;
+  gap: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 170px;
+}
+.game-top {
+  grid-row: 1;
+  grid-column: 1;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(#7ad7f0, #c9f1ff);
+  overflow: hidden;
+}
+.canvas-host {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background: linear-gradient(#7ad7f0, #c9f1ff);
+}
+.play-hud {
+  position: absolute;
+  bottom: 22px;
+  left: 28px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+}
+.world-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  opacity: 0.65;
+}
+.play-level {
+  max-width: none;
+  font-size: 26px;
+  letter-spacing: 0.2px;
+}
+.play-hint {
+  position: absolute;
+  bottom: 24px;
+  right: 28px;
+  z-index: 2;
+  color: var(--ink);
+  max-width: 420px;
+  font-size: 13px;
+  padding: 0;
+  font-weight: 800;
+  text-align: right;
+}
+.play-roster {
+  position: absolute;
+  z-index: 3;
+  left: 24px;
+  top: 78px;
+  max-width: calc(100vw - 48px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  grid-row: auto;
+  grid-column: auto;
+}
+.play-roster > h2 {
+  display: none;
+}
+.play-player {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 12px;
+  background: #fff6e6e0;
+  border: 2px solid #2a1e1429;
+  border-radius: 20px;
+  font-size: 13px;
+  box-shadow: 0 2px #2a1e1412;
+}
+.play-player .tiny {
+  font-size: 9px;
+  color: #594333;
+}
+.play-player.last-presser {
+  background: #fff6e6;
+  transform: translateY(-2px);
+  border-color: #2a1e1480;
+}
+.controls {
+  grid-column: 1;
+  grid-row: 2;
+  width: min(100%, 744px);
+  justify-self: center;
+  padding: 10px 12px 12px;
+  background: var(--cream);
+  border: 3px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  color: var(--ink);
+  min-height: 0;
+}
+.control-heading {
+  color: var(--ink);
+  margin: 0 2px 8px;
+  align-items: center;
+}
+.control-heading .eyebrow {
+  font-family: 'Lilita One', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+.control-heading .tiny {
+  color: #594333;
+  font-size: 10px;
+  font-weight: 800;
+}
+.button-grid,
+.button-grid[data-count='3'] {
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.button-grid[data-count='1'] {
+  grid-template-columns: 1fr;
+}
+.button-grid[data-count='2'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.button-grid[data-count='3'] .game-button:last-child {
+  grid-column: auto;
+}
+.game-button,
+.game-button:nth-child(2),
+.game-button:nth-child(3) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 44px;
+  padding: 10px;
+  background: var(--control-color, #ff754a);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  box-shadow:
+    0 6px var(--ink),
+    inset 0 4px #ffffff45;
+  gap: 12px;
+  flex-direction: row;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s;
+}
+.game-button.is-pressed {
+  transform: translateY(5px);
+  box-shadow:
+    0 1px var(--ink),
+    inset 0 2px #ffffff45;
+  filter: brightness(1.04);
+}
+.button-ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70%;
+  aspect-ratio: 1;
+  border: 5px solid #ffffffa0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.button-icon {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 36px;
+}
+.button-word {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+}
+.game-button kbd {
+  font-family: 'Nunito', sans-serif;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.control-status {
+  color: #594333;
+  font-size: 10px;
+  font-weight: 800;
+  margin: 10px 0 0;
+  min-height: 14px;
+}
+.board-loading,
+.graphics-error {
+  color: var(--ink);
+  font-weight: 900;
+}
+.connection-banner {
+  z-index: 10;
+  color: var(--ink);
+  background: var(--cream);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+}
+.death-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  background: #ff4d4d;
+}
+.exit-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  overflow: hidden;
+}
+.exit-confetti i {
+  position: absolute;
+  display: block;
+  width: 10px;
+  height: 5px;
+  border-radius: 2px;
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  .in-game .topbar {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: none;
+    top: max(10px, env(safe-area-inset-top));
+    gap: 4px;
+    padding-left: 10px;
+  }
+  .in-game .brand {
+    display: none;
+  }
+  .in-game .topbar-room {
+    margin-right: auto;
+    font-size: 12px;
+  }
+  .play-stats {
+    gap: 8px;
+  }
+  .play-stats .play-timer {
+    font-size: 14px;
+  }
+  .play-stats .death-counter {
+    font-size: 10px;
+  }
+  .play-screen {
+    height: 100dvh;
+    padding: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 68dvh 32dvh;
+  }
+  .game-top {
+    grid-column: 1;
+    grid-row: 1;
+    border-radius: 0;
+  }
+  .play-roster {
+    display: none;
+  }
+  .play-hud {
+    left: 18px;
+    top: 82px;
+    bottom: auto;
+    gap: 6px;
+  }
+  .world-label {
+    font-size: 10px;
+  }
+  .play-level {
+    font-size: 27px;
+  }
+  .play-hint {
+    left: 18px;
+    right: 18px;
+    bottom: 16px;
+    text-align: center;
+    max-width: none;
+    font-size: 12px;
+  }
+  .controls {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 12px 14px max(16px, env(safe-area-inset-bottom));
+  }
+  .button-grid,
+  .button-grid[data-count='3'] {
+    gap: 10px;
+  }
+  .game-button,
+  .game-button:nth-child(2),
+  .game-button:nth-child(3),
+  .button-grid[data-count='3'] .game-button {
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 20px;
+  }
+  .button-icon,
+  .button-grid[data-count='3'] .button-icon {
+    font-size: 36px;
+  }
+  .button-word,
+  .button-grid[data-count='3'] .button-word {
+    font-size: 21px;
+  }
+  .game-button kbd {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .play-screen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 68dvh 32dvh;
+    height: 100dvh;
+  }
+  .game-top {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .controls {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 5px 12px 8px;
+  }
+  .control-heading,
+  .control-status {
+    display: none;
+  }
+  .play-roster {
+    display: none;
+  }
+  .in-game .topbar {
+    top: 5px;
+    left: 12px;
+    max-width: calc(100vw - 24px);
+    height: 44px;
+  }
+  .in-game .brand {
+    display: none;
+  }
+  .play-hud {
+    bottom: 8px;
+    left: 16px;
+  }
+  .play-level {
+    font-size: 15px;
+  }
+  .world-label,
+  .play-hint {
+    display: none;
+  }
+  .button-grid,
+  .button-grid[data-count='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .button-grid[data-count='2'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .button-grid[data-count='1'] {
+    grid-template-columns: 1fr;
+  }
+  .game-button,
+  .game-button:nth-child(2),
+  .game-button:nth-child(3) {
+    border-radius: 16px;
+    gap: 10px;
+    padding: 3px;
+    flex-direction: row;
+  }
+  .button-icon {
+    font-size: 28px;
+  }
+  .button-word {
+    font-size: 19px;
+  }
+  .game-button kbd {
+    display: none;
+  }
+}
+.stars {
+  color: #ffd23f;
+  -webkit-text-stroke: 1px #2a1e14;
+  text-shadow: 0 2px #2a1e14;
+}

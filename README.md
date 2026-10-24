@@ -70,7 +70,7 @@ Playwright checks 360×740, 390×844 and 1366×768, plus rotated phone layouts. 
 
 The build checks the sum of **all** JavaScript chunks against 400 KiB gzipped, including the Three.js renderer loaded on entry to a level. The factory, Spud, effects and hand labels are generated in code. No art, font or sound files are downloaded from third parties. The development servers listen on the local network; `pnpm build` does not publish.
 
-The 3D camera follows Spud and fills the game area, panning across long boards on portrait phones. Open **Settings** (the gear button) to choose Auto, High or Low graphics. Auto starts with shadows and particles and disables them after three seconds below 45 fps; Low disables both immediately. Pixel ratio is capped at 2. System reduced-motion preferences also remove ambient motion and particles. These options affect drawing only; movement, input, room messages and the authoritative server are unchanged.
+The fixed 62-degree diorama camera fits the whole room on phones and laptops. Low counters keep every path visible above a rounded floating island and a sky gradient. Open **Settings** (the gear button) to choose Auto, High or Low graphics. Auto starts with shadows, bloom and particles and disables shadows, selective bloom and particles after three seconds below 45 fps; Low disables all three immediately. Pixel ratio is capped at 2. System reduced-motion preferences also remove ambient motion and particles. These options affect drawing only; movement, input, room messages and the authoritative server are unchanged.
 
 ## Manual fun-test checklist
 
@@ -181,6 +181,8 @@ git commit -m "Build playable mobile client with Pixi art, touch controls, audio
 ```
 
 ## Three.js renderer update
+
+The game view uses 68% of phone height, with saturated candy controls below and a translucent stats overlay. Desktop players appear as floating chips. Lilita One and Nunito are self-hosted; sources and licences are in [docs/assets.md](docs/assets.md).
 
 The drawing interface is in `apps/client/src/game/renderer.ts`; the procedural scene, camera, character, props, hands and quality policy live in `apps/client/src/game/three/`. The shared engine, server and wire protocol are unchanged. Hand name textures are cached per player; repeated factory pieces use instancing. The renderer disposes its GPU resources when leaving play and pauses animation in hidden tabs.
 

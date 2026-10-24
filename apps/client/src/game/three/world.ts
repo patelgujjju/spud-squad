@@ -11,10 +11,9 @@ import {
 import type { BufferGeometry, Color, Material } from 'three';
 import { slicerAt } from '@spud-squad/shared';
 import type { Level, SpudView } from '@spud-squad/shared';
-import { palette, Resources, tint } from './resources.js';
+import { palette, Resources } from './resources.js';
 import { makeProp } from './props.js';
 import type { Prop } from './props.js';
-import type { Label } from './labels.js';
 import type { FactoryParticles } from './particles.js';
 
 interface Batch {
@@ -82,12 +81,12 @@ interface Belt {
 export class FactoryWorld {
   readonly root = new Group();
   readonly props: Prop[] = [];
-  private labels: Label[] = [];
   private belts: Belt[] = [];
   private rollers: InstancedMesh;
   private arrows: InstancedMesh;
   private dummy = new Object3D();
   private sparkleAt = 0;
+  private counterCount = 0;
   private particlePoint = new Vector3();
   constructor(
     readonly level: Level,
@@ -96,46 +95,54 @@ export class FactoryWorld {
     const batches = new Batches();
     const width = level.map[0]!.length;
     const depth = level.map.length;
+    const centerX = (width - 1) / 2;
+    const centerZ = (depth - 1) / 2;
     this.root.add(
       r.mesh(
-        r.bevel(width + 0.16, 0.42, depth + 0.16, 0.065),
-        r.toon(0x9d8159),
-        (width - 1) / 2,
-        -0.38,
-        (depth - 1) / 2,
+        r.bevel(width + 0.32, 0.6, depth + 0.32, 0.14),
+        r.toon(palette.machine),
+        centerX,
+        -0.34,
+        centerZ,
       ),
     );
+    this.root.add(
+      r.mesh(
+        r.bevel(width + 0.34, 0.065, depth + 0.34, 0.12),
+        r.toon(palette.yellow),
+        centerX,
+        -0.48,
+        centerZ,
+      ),
+    );
+    this.root.add(
+      r.mesh(
+        r.bevel(width + 0.28, 0.1, depth + 0.28, 0.11),
+        r.toon(palette.grout),
+        centerX,
+        -0.05,
+        centerZ,
+      ),
+    );
+    const dropShadow = r.softShadow(width * 1.18, depth * 1.55, 0.34);
+    dropShadow.position.set(centerX, -0.96, centerZ + 0.25);
+    this.root.add(dropShadow);
     level.map.forEach((row, z) =>
       [...row].forEach((symbol, x) => {
-        const variation = 0.96 + (Math.sin(x * 7.2 + z * 3.6) + 1) * 0.035;
         batches.add(
-          r.bevel(0.96, 0.2, 0.96),
+          r.bevel(0.96, 0.12, 0.96, 0.04),
           r.toon(palette.floor),
           x,
-          -0.1,
+          -0.02,
           z,
           0,
           0,
           0,
-          tint(0xffffff, variation),
+          null,
           false,
         );
-        if (symbol === '#') this.machine(batches, x, z);
+        if (symbol === '#') this.counter(batches, x, z);
         else {
-          if ((x + z) % 3 === 0)
-            for (let i = 0; i < 2; i++)
-              batches.add(
-                r.box(0.12, 0.003, 0.012),
-                r.toon(0x9ab5a4),
-                x + 0.2,
-                0.003,
-                z - 0.22 + i * 0.04,
-                0,
-                0.3,
-                0,
-                null,
-                false,
-              );
           if ('><^v'.includes(symbol)) {
             const yaw =
               symbol === '<'
@@ -148,7 +155,7 @@ export class FactoryWorld {
             this.belts.push({ x, z, yaw });
             batches.add(
               r.bevel(0.98, 0.16, 0.94),
-              r.toon(0x465958),
+              r.toon(0x0f5e59),
               x,
               0.06,
               z,
@@ -164,7 +171,7 @@ export class FactoryWorld {
                 yaw,
               );
           } else if ('ECkDLS'.includes(symbol)) {
-            const prop = makeProp(symbol, x, z, r, this.labels);
+            const prop = makeProp(symbol, x, z, r);
             if (symbol === 'D') {
               const horizontal =
                 level.map[z]?.[x - 1] !== '#' && level.map[z]?.[x + 1] !== '#';
@@ -184,7 +191,7 @@ export class FactoryWorld {
         ),
       )[0];
     if (chip) {
-      const prop = makeProp('G', chip[0], chip[1], r, this.labels);
+      const prop = makeProp('G', chip[0], chip[1], r);
       this.props.push(prop);
       this.root.add(prop.root);
     }
@@ -235,98 +242,55 @@ export class FactoryWorld {
     });
     this.arrows = new InstancedMesh(
       arrowGeometry,
-      r.toon(0xffedc0),
+      r.toon(0xffffff),
       this.belts.length * 2,
     );
     this.arrows.castShadow = false;
     this.arrows.frustumCulled = false;
     this.root.add(this.rollers, this.arrows);
   }
-  private machine(b: Batches, x: number, z: number): void {
+  private counter(b: Batches, x: number, z: number): void {
     const r = this.r;
+    // Baked dark foot/corners keep the path legible even with shadows disabled.
+    b.add(r.bevel(0.94, 0.06, 0.94, 0.04), r.toon(palette.dark), x, 0.07, z);
     b.add(
-      r.bevel(0.94, 0.67, 0.94, 0.055),
+      r.bevel(0.92, 0.22, 0.92, 0.065),
       r.toon(palette.machine),
       x,
-      0.34,
+      0.18,
       z,
     );
-    b.add(r.bevel(0.98, 0.1, 0.98, 0.025), r.toon(palette.cap), x, 0.72, z);
+    b.add(r.bevel(0.97, 0.05, 0.97, 0.025), r.toon(palette.yellow), x, 0.3, z);
     b.add(
-      r.bevel(0.67, 0.37, 0.024, 0.01),
-      r.toon(palette.dark),
+      r.bevel(0.86, 0.015, 0.86, 0.006),
+      r.toon(palette.machine),
       x,
-      0.39,
-      z + 0.477,
+      0.3275,
+      z,
     );
-    for (let i = 0; i < 3; i++)
+    // One low bolt panel per six counters. No path decorations or repeated pipes.
+    if (++this.counterCount % 6 === 0) {
       b.add(
-        r.box(0.39, 0.024, 0.02),
-        r.toon(0x7d9990),
-        x,
-        0.32 + i * 0.075,
-        z + 0.5,
-        0,
-        0,
-        0,
-        null,
-        false,
+        r.bevel(0.23, 0.009, 0.17, 0.003),
+        r.toon(palette.dark),
+        x + 0.16,
+        0.3395,
+        z - 0.15,
       );
-    for (const dx of [-0.28, 0.28])
-      for (const dy of [-0.12, 0.12])
+      for (const dx of [-0.07, 0.07])
         b.add(
-          r.sphere(0.025, 6, 4),
+          r.sphere(0.012, 6, 4),
           r.toon(palette.steel),
-          x + dx,
-          0.4 + dy,
-          z + 0.5,
+          x + 0.16 + dx,
+          0.337,
+          z - 0.15,
           0,
           0,
           0,
           null,
           false,
         );
-    b.add(r.box(0.62, 0.13, 0.02), r.toon(palette.yellow), x, 0.12, z + 0.485);
-    for (let i = 0; i < 4; i++)
-      b.add(
-        r.box(0.058, 0.14, 0.022),
-        r.toon(palette.ink),
-        x - 0.22 + i * 0.14,
-        0.12,
-        z + 0.503,
-        0,
-        0,
-        -0.45,
-        null,
-        false,
-      );
-    b.add(
-      r.cylinder(0.043, 0.23),
-      r.toon(palette.brass),
-      x - 0.23,
-      0.87,
-      z - 0.12,
-    );
-    b.add(
-      r.torus(0.085, 0.043, Math.PI / 2),
-      r.toon(palette.brass),
-      x - 0.145,
-      0.98,
-      z - 0.12,
-      0,
-      0,
-      Math.PI / 2,
-    );
-    b.add(
-      r.cylinder(0.043, 0.23),
-      r.toon(palette.brass),
-      x + 0.02,
-      1.065,
-      z - 0.12,
-      0,
-      0,
-      Math.PI / 2,
-    );
+    }
   }
   frame(
     state: SpudView,
@@ -360,8 +324,10 @@ export class FactoryWorld {
           !reduced && phase.warning ? Math.sin(now / 20) * 0.012 : 0;
         prop.moving!.rotation.z = !reduced && phase.active ? now / 85 : 0;
         prop.blade!.material = phase.warning
-          ? this.r.toon(0xf16c55, 0xc62c21, 0.35)
+          ? this.r.toon(palette.danger, palette.danger, 1.0)
           : this.r.toon(palette.steel);
+        prop.blade!.layers.set(0);
+        if (phase.warning) prop.blade!.layers.enable(1);
         prop.glow!.visible = phase.warning || phase.active;
       } else if (prop.symbol === 'k' || prop.symbol === 'G') {
         prop.root.visible =
@@ -372,9 +338,15 @@ export class FactoryWorld {
           prop.moving.position.y =
             0.44 + (reduced ? 0 : Math.sin(now / 380 + prop.at[0]) * 0.055);
           prop.moving.rotation.set(
-            prop.symbol === 'G' ? 0.3 : 0,
-            reduced ? 0 : now / 900,
-            prop.symbol === 'G' ? 0.18 : 0,
+            prop.symbol === 'G' ? (-62 * Math.PI) / 180 : 0,
+            prop.symbol === 'G'
+              ? reduced
+                ? 0
+                : Math.sin(now / 700) * 0.12
+              : reduced
+                ? 0
+                : now / 900,
+            prop.symbol === 'G' ? (reduced ? 0.2 : now / 1200) : 0,
           );
         }
       } else if (prop.symbol === 'D') {
@@ -434,7 +406,6 @@ export class FactoryWorld {
     this.root.traverse((node) => {
       if (node instanceof InstancedMesh) node.dispose();
     });
-    this.labels.forEach((label) => label.dispose());
     this.root.clear();
   }
 }

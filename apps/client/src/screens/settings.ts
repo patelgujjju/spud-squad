@@ -15,10 +15,14 @@ export function openSettings(): void {
     [
       'auto',
       'Auto',
-      'Full detail. Reduces shadows and particles if the frame rate stays low.',
+      'Full detail. Reduces shadows, bloom and particles if the frame rate stays low.',
     ],
-    ['high', 'High', 'Soft shadows, dust and sparks.'],
-    ['low', 'Low', 'No shadows or particles. The whole level stays readable.'],
+    ['high', 'High', 'Soft shadows, gentle bloom and party effects.'],
+    [
+      'low',
+      'Low',
+      'No shadows, bloom or particles. The whole level stays readable.',
+    ],
   ];
   for (const [value, label, description] of choices) {
     const row = element('label', 'quality-choice');

@@ -23,14 +23,17 @@ export function makeLabel(text: string, color: string, width = 1.8): Label {
   ctx.fill();
   ctx.stroke();
   let size = 52;
-  ctx.font = `900 ${size}px Trebuchet MS, sans-serif`;
+  ctx.font = `900 ${size}px Nunito, sans-serif`;
   while (ctx.measureText(text).width > 465 && size > 30) {
     size -= 2;
-    ctx.font = `900 ${size}px Trebuchet MS, sans-serif`;
+    ctx.font = `900 ${size}px Nunito, sans-serif`;
   }
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = color;
+  ctx.strokeStyle = '#2a1e14';
+  ctx.lineWidth = 2.5;
+  ctx.strokeText(text, 256, 62);
   ctx.fillText(text, 256, 62);
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

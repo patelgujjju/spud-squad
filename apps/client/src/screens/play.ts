@@ -9,7 +9,7 @@ import type { GameAudio } from '../audio.js';
 import type { ServerClock } from '../clock.js';
 import type { GameRenderer } from '../game/renderer.js';
 import { GameControls } from '../game/controls.js';
-import { element, playerName, timeLabel } from '../dom.js';
+import { COLORS, element, playerName, timeLabel } from '../dom.js';
 import { HINTS, levelById } from '../levels.js';
 
 export class PlayScreen {
@@ -18,9 +18,11 @@ export class PlayScreen {
   private timer = element('strong', 'play-timer', '0:00.0');
   private deaths = element('span', 'death-counter', '0 deaths');
   private title = element('span', 'play-level');
+  private worldLabel = element('span', 'world-label');
   private hint = element('p', 'play-hint');
   private connection = element('div', 'connection-banner', 'Connecting…');
   private roster = element('aside', 'play-roster');
+  private stats = element('div', 'play-stats');
   private controls: GameControls;
   private renderer: GameRenderer | null = null;
   private level: Extract<ServerMessage, { type: 'levelStart' }> | null = null;
@@ -41,7 +43,11 @@ export class PlayScreen {
     this.room = room;
     const top = element('div', 'game-top');
     const hud = element('div', 'play-hud');
-    hud.append(this.title, this.timer, this.deaths);
+    hud.append(this.worldLabel, this.title);
+    this.stats.append(this.timer, this.deaths);
+    const topbar = document.querySelector('.topbar');
+    const mute = topbar?.querySelector('.mute');
+    if (topbar && mute) topbar.insertBefore(this.stats, mute);
     this.host.setAttribute('role', 'img');
     this.host.setAttribute('aria-label', 'Loading the factory grid');
     this.host.append(element('div', 'board-loading', 'Opening the factory…'));
@@ -110,6 +116,10 @@ export class PlayScreen {
     this.renderer?.setPlayers(room.players);
     const mine = room.players.find((player) => player.id === this.me);
     this.controls.setButtons(mine?.buttons ?? []);
+    this.controls.node.style.setProperty(
+      '--control-color',
+      COLORS[mine?.color ?? 0]!,
+    );
     this.roster.replaceChildren(
       element('h2', 'eyebrow', 'THE BUTTON BRIGADE'),
       ...room.players.map((player) => {
@@ -134,6 +144,10 @@ export class PlayScreen {
     const level = levelById.get(message.levelId);
     if (!level) return;
     this.title.textContent = `${level.id} · ${level.name}`;
+    this.worldLabel.textContent =
+      level.world === 1
+        ? 'CRISPY CO. / WASH & SORT'
+        : 'CRISPY CO. / SLICER HALL';
     this.hint.textContent = HINTS[level.id] ?? '';
     this.renderer?.setLevel(level, message);
     this.renderer?.setPlayers(this.room.players);
@@ -176,6 +190,7 @@ export class PlayScreen {
     clearInterval(this.interval);
     this.abort.abort();
     this.controls.destroy();
+    this.stats.remove();
     this.renderer?.destroy();
   }
 }

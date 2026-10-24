@@ -33,16 +33,16 @@ export function toast(message: string): void {
   }, 3500);
 }
 export const COLORS = [
-  '#b94e12',
-  '#00747d',
-  '#6650a5',
-  '#b9374e',
-  '#245ca7',
-  '#836600',
-  '#9c3d84',
-  '#44702e',
-  '#855d37',
-  '#52646e',
+  '#FF754A',
+  '#268BFF',
+  '#A45AEB',
+  '#F54B95',
+  '#00B89E',
+  '#FFD23F',
+  '#F18828',
+  '#5B70EA',
+  '#BD7946',
+  '#637CA8',
 ];
 export const SHAPES = ['●', '▲', '■', '◆', '✚', '★', '⬟', '▰', '◈', '◒'];
 export function playerName(name: string, color: number): HTMLElement {

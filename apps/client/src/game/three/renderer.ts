@@ -1,8 +1,6 @@
 import {
-  ACESFilmicToneMapping,
-  Color,
+  NoToneMapping,
   DirectionalLight,
-  Fog,
   HemisphereLight,
   PCFShadowMap,
   Scene,
@@ -26,6 +24,8 @@ import { Resources } from './resources.js';
 import { SpudModel } from './spud.js';
 import { FactoryWorld } from './world.js';
 import { FactoryParticles } from './particles.js';
+import { exitConfetti } from '../celebrate.js';
+import { ToyBloom } from './bloom.js';
 import { PressHands3D } from './hands.js';
 
 export class ThreeLevelRenderer implements GameRenderer {
@@ -36,8 +36,9 @@ export class ThreeLevelRenderer implements GameRenderer {
   private view = new FollowCamera();
   private particles = new FactoryParticles();
   private hands = new PressHands3D(this.resources);
+  private bloom = new ToyBloom();
   private world: FactoryWorld | null = null;
-  private light = new DirectionalLight(0xffe1af, 2.5);
+  private light = new DirectionalLight(0xfff1d6, 1.3);
   private quality = new AdaptiveQuality(getQuality());
   private state: SpudView | null = null;
   private players: PlayerView[] = [];
@@ -48,30 +49,41 @@ export class ThreeLevelRenderer implements GameRenderer {
   private raf = 0;
   private lastFrame = 0;
   private frameCount = 0;
+  private sawRaised: boolean | null = null;
   private destroyed = false;
   private reduced = matchMedia('(prefers-reduced-motion: reduce)');
   private point = new Vector3();
   constructor(private readonly context: RendererContext) {}
   async init(): Promise<void> {
     if (this.destroyed) return;
+    await document.fonts.ready;
     const host = this.context.host;
     this.gpu = new WebGLRenderer({
       antialias: true,
-      alpha: false,
+      alpha: true,
       powerPreference: 'high-performance',
     });
     this.gpu.setPixelRatio(Math.min(devicePixelRatio, 2));
-    this.gpu.setClearColor(0x345859);
-    this.gpu.toneMapping = ACESFilmicToneMapping;
+    this.gpu.setClearColor(0x000000, 0);
+    this.gpu.toneMapping = NoToneMapping;
     this.gpu.toneMappingExposure = 1.0;
     this.gpu.shadowMap.enabled = true;
     this.gpu.shadowMap.type = PCFShadowMap;
     this.gpu.shadowMap.autoUpdate = false;
+    this.gpu.info.autoReset = false;
     this.gpu.domElement.setAttribute('aria-hidden', 'true');
     host.append(this.gpu.domElement);
-    this.scene.background = new Color(0x345859);
-    this.scene.fog = new Fog(0x345859, 14, 42);
-    this.scene.add(new HemisphereLight(0xfff2d9, 0x557b7b, 1.4));
+    const ambient = new HemisphereLight(0xffffff, 0x9bd2e7, 1.35);
+    ambient.layers.enable(1);
+    const fill = new DirectionalLight(0xb5e6ff, 0.5);
+    fill.position.set(5, 4, -4);
+    fill.layers.enable(1);
+    const rim = new DirectionalLight(0xffffff, 0.45);
+    rim.position.set(-2, 4, -5);
+    rim.layers.enable(1);
+    this.light.layers.enable(1);
+    this.scene.add(ambient, fill, rim);
+    this.avatar.root.scale.setScalar(1.3);
     this.light.position.set(-3, 9, 5);
     this.light.castShadow = true;
     this.light.shadow.mapSize.set(1024, 1024);
@@ -90,15 +102,6 @@ export class ThreeLevelRenderer implements GameRenderer {
       this.particles.node,
       this.hands.root,
     );
-    const ground = this.resources.mesh(
-      this.resources.box(120, 0.2, 120),
-      this.resources.toon(0x476562),
-      0,
-      -0.75,
-      0,
-    );
-    ground.castShadow = false;
-    this.scene.add(ground);
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(host);
     window.addEventListener(
@@ -134,6 +137,7 @@ export class ThreeLevelRenderer implements GameRenderer {
     this.avatar.root.visible = false;
     this.hands.clear();
     this.frameCount = 0;
+    this.sawRaised = null;
     this.context.host.dataset.ready = 'false';
     this.resize();
   }
@@ -157,12 +161,44 @@ export class ThreeLevelRenderer implements GameRenderer {
   }
   event(event: GameEvent): void {
     const audio = this.context.audio;
-    if (event.type === 'hop') audio.play('step');
+    if (event.type === 'hop') {
+      audio.play('step');
+      if (!this.reduced.matches) {
+        this.point.set(event.hop.from[0], 0.12, event.hop.from[1]);
+        this.particles.burst('puff', this.point, 7);
+      }
+    }
     if (event.type === 'checkpoint') audio.play('checkpoint');
-    if (event.type === 'finish') audio.play('win');
+    if (event.type === 'goldenChip' && !this.reduced.matches) {
+      this.point.set(event.at[0], 0.6, event.at[1]);
+      this.particles.burst('chip', this.point, 28);
+    }
+    if (event.type === 'finish') {
+      audio.play('win');
+      const exit = this.world?.props.find((prop) => prop.symbol === 'E');
+      if (exit && !this.reduced.matches) {
+        this.point.set(exit.at[0], 0.5, exit.at[1]);
+        this.particles.burst('confetti', this.point, 65);
+        const bounds = this.context.host.getBoundingClientRect();
+        this.point.project(this.view.camera);
+        exitConfetti(
+          bounds.left + ((this.point.x + 1) * bounds.width) / 2,
+          bounds.top + ((1 - this.point.y) * bounds.height) / 2,
+        );
+      }
+    }
     if (event.type === 'death') {
       audio.play('death');
       this.avatar.die(event.t);
+      if (!this.reduced.matches) this.view.shake();
+      if (!this.reduced.matches) {
+        const flash = document.createElement('div');
+        flash.className = 'death-flash';
+        this.context.host.append(flash);
+        void flash
+          .animate([{ opacity: 0.25 }, { opacity: 0 }], { duration: 180 })
+          .finished.then(() => flash.remove());
+      }
       if (!this.reduced.matches) {
         this.point.set(event.at[0], 0.38, event.at[1]);
         this.particles.burst('spark', this.point, 17);
@@ -201,6 +237,10 @@ export class ThreeLevelRenderer implements GameRenderer {
     this.gpu.setSize(width, height);
     this.view.resize(width, height);
     this.particles.resize(height, this.gpu.getPixelRatio());
+    this.bloom.resize(
+      width * this.gpu.getPixelRatio(),
+      height * this.gpu.getPixelRatio(),
+    );
   }
   private frame = (timestamp: number): void => {
     this.raf = 0;
@@ -227,7 +267,7 @@ export class ThreeLevelRenderer implements GameRenderer {
         ? hop.from[1] + (hop.to[1] - hop.from[1]) * progress
         : state.position[1];
       this.avatar.root.visible = true;
-      this.avatar.root.position.set(x, 0, z);
+      this.avatar.root.position.set(x, 0.045, z);
       const panic = this.world.level.objects.some(
         (object) =>
           object.type === 'slicer' &&
@@ -252,8 +292,24 @@ export class ThreeLevelRenderer implements GameRenderer {
         this.particles,
         () => this.context.audio.play('slicer'),
       );
+      const raised = this.world.props.some(
+        (prop) =>
+          prop.symbol === 'S' &&
+          prop.active &&
+          (prop.moving?.position.y ?? 0) > 0.3,
+      );
+      if (raised !== this.sawRaised) {
+        this.sawRaised = raised;
+        this.context.host.dataset.sawRaised = String(raised);
+      }
       this.view.frame(x, z, dt, reduced);
-      this.hands.frame(timestamp, reduced, x, z);
+      this.hands.frame(
+        timestamp,
+        reduced,
+        x,
+        z,
+        this.view.worldUnitsPerPixel(this.context.host.clientHeight),
+      );
       this.point.set(x, 0, z);
       this.particles.frame(dt, now, this.point);
       this.light.target.position.set(x, 0, z);
@@ -261,9 +317,17 @@ export class ThreeLevelRenderer implements GameRenderer {
       if (this.quality.detailed && this.frameCount % 2 === 0)
         this.gpu.shadowMap.needsUpdate = true;
       if (this.frameCount > 3 && this.quality.frame(rawDt)) this.applyQuality();
+      this.gpu.info.reset();
       this.gpu.render(this.scene, this.view.camera);
+      if (this.quality.detailed)
+        this.bloom.render(this.gpu, this.scene, this.view.camera);
       this.frameCount++;
-      if (this.frameCount === 3) this.context.host.dataset.ready = 'true';
+      if (this.frameCount === 3 || this.frameCount % 30 === 0) {
+        this.context.host.dataset.roomBounds = JSON.stringify(
+          this.view.bounds(),
+        );
+        this.context.host.dataset.ready = 'true';
+      }
       if (this.frameCount % 60 === 0) {
         this.context.host.dataset.fps = this.quality.fps.toFixed(0);
         this.context.host.dataset.drawCalls = String(
@@ -290,6 +354,7 @@ export class ThreeLevelRenderer implements GameRenderer {
     this.hands.clear();
     this.world?.dispose();
     this.particles.dispose();
+    this.bloom.dispose();
     this.resources.dispose();
     this.scene.clear();
     this.light.shadow.dispose();

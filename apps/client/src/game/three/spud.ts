@@ -20,7 +20,9 @@ export class SpudModel {
       const geometry = r.sphere(1, 28, 18).clone();
       const positions = geometry.getAttribute('position');
       const colors: number[] = [];
-      const base = new Color(0xc18a52);
+      const base = new Color(0xc98a4b);
+      const highlight = new Color(0xe8b07a);
+      const spotColor = new Color(0x8a5a2b);
       const spots = [
         [0.67, 0.24, 0.7],
         [-0.61, -0.45, 0.66],
@@ -44,24 +46,26 @@ export class SpudModel {
           ([sx, sy, sz]) =>
             (x - sx!) ** 2 + (y - sy!) ** 2 + (z - sz!) ** 2 < 0.038,
         );
-        const variation = spot ? 0.59 : 0.97 + Math.sin(x * 18 + y * 6) * 0.025;
-        colors.push(base.r * variation, base.g * variation, base.b * variation);
+        const color = spot
+          ? spotColor
+          : base.clone().lerp(highlight, Math.max(0, y * 0.3 + z * 0.12));
+        colors.push(color.r, color.g, color.b);
       }
       geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
       geometry.computeVertexNormals();
       return geometry;
     });
-    const skin = r.toon(0xffffff);
+    const skin = r.toon(0xffffff, 0xc98a4b, 0.025);
     skin.vertexColors = true;
     const potato = r.mesh(geometry, skin, 0, 0.65, 0);
     const outline = r.mesh(geometry, r.outline(), 0, 0.65, 0);
-    outline.scale.setScalar(1.035);
+    outline.scale.setScalar(1.055);
     outline.castShadow = false;
     this.body.add(outline, potato);
     for (const x of [-0.135, 0.135]) {
       const white = r.mesh(
         r.sphere(0.128, 16, 12),
-        r.toon(0xfffefd),
+        r.toon(0xffffff),
         x,
         0.875,
         0.255,
@@ -161,15 +165,8 @@ export class SpudModel {
     this.sad.add(frown);
     this.fries.add(this.sad);
     this.fries.visible = false;
-    const shadow = r.mesh(
-      r.cylinder(0.28, 0.006, 24),
-      r.basic(0x173c38, 0.13),
-      0,
-      0.005,
-      0,
-    );
-    shadow.scale.z = 0.85;
-    shadow.castShadow = false;
+    const shadow = r.softShadow(0.9, 0.65, 0.25);
+    shadow.position.y = 0.005;
     this.root.add(shadow, this.body, this.fries);
   }
   die(time: number): void {

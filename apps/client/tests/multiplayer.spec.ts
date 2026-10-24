@@ -155,7 +155,12 @@ test('two players create, join, play, read awards, and continue to the next leve
       const top = await page.locator('.game-top').boundingBox();
       const controls = await page.locator('.controls').boundingBox();
       expect(top!.y + top!.height).toBeLessThan(controls!.y + 1);
-      expect(top!.height / controls!.height).toBeGreaterThan(1.3);
+      expect(top!.height).toBeGreaterThanOrEqual(
+        page.viewportSize()!.height * 0.66,
+      );
+      expect(controls!.height).toBeLessThanOrEqual(
+        page.viewportSize()!.height * 0.34,
+      );
       const viewport = page.viewportSize()!;
       await page.setViewportSize({
         width: viewport.height,
@@ -165,7 +170,7 @@ test('two players create, join, play, read awards, and continue to the next leve
         .poll(async () => {
           const a = await page.locator('.game-top').boundingBox();
           const b = await page.locator('.controls').boundingBox();
-          return a!.x + a!.width <= b!.x + 1;
+          return a!.y + a!.height <= b!.y + 1;
         })
         .toBe(true);
       await page.screenshot({ path: testInfo.outputPath('landscape.png') });
@@ -189,11 +194,15 @@ test('two players create, join, play, read awards, and continue to the next leve
     const last = (await page.locator('[data-button="RIGHT"]').count())
       ? page
       : guest.page;
+    const confetti = page.waitForSelector('.exit-confetti', {
+      state: 'attached',
+    });
     await last.locator('[data-button="RIGHT"]').dispatchEvent('pointerdown', {
       pointerId: 1,
       pointerType: 'touch',
       button: 0,
     });
+    await confetti;
     await expect(page.locator('[data-screen="results"]')).toBeVisible();
     await expect(guest.page.locator('[data-screen="results"]')).toBeVisible();
     for (const title of [
@@ -269,7 +278,10 @@ test('refresh preserves buttons; multi-pointer feedback is immediate; keyboard r
             bubbles: true,
           }),
         );
-        return node.classList.contains('is-pressed');
+        return (
+          node.classList.contains('is-pressed') &&
+          node.querySelector('.button-ripple') !== null
+        );
       }),
     ).toBe(true);
     await two.dispatchEvent('pointerdown', {
