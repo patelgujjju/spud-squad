@@ -15,13 +15,14 @@ export function openSettings(): void {
     [
       'auto',
       'Auto',
-      'Full detail. Reduces shadows, bloom and particles if the frame rate stays low.',
+      'Automatically steps from High to Medium to Low after sustained slow frames.',
     ],
-    ['high', 'High', 'Soft shadows, gentle bloom and party effects.'],
+    ['high', 'High', 'Sharp textures, soft shadows, reflections and glow.'],
+    ['medium', 'Medium', 'Smaller textures and shadow maps with reflections.'],
     [
       'low',
       'Low',
-      'No shadows, bloom or particles. The whole level stays readable.',
+      'Small textures. Shadows, particles and reflections disabled.',
     ],
   ];
   for (const [value, label, description] of choices) {

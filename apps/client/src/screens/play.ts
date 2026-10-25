@@ -30,6 +30,9 @@ export class PlayScreen {
   private room: RoomView;
   private connected = true;
   private loaded = false;
+  private rendererReady = false;
+  private drawingVersion = 0;
+  private eye = element('button', 'camera-eye');
   private destroyed = false;
   private interval: number;
   private abort = new AbortController();
@@ -55,7 +58,48 @@ export class PlayScreen {
     this.connection.setAttribute('role', 'status');
     this.connection.hidden = true;
     top.append(hud, this.host, this.hint, this.connection);
-    this.controls = new GameControls(audio, press);
+    this.controls = new GameControls(audio, (value) => {
+      this.renderer?.skipIntro?.();
+      press(value);
+    });
+    this.eye.type = 'button';
+    this.eye.hidden = true;
+    this.eye.setAttribute('aria-label', 'Hold to see whole room');
+    this.eye.title = 'Hold to see whole room (V)';
+    this.eye.innerHTML =
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>';
+    if (topbar && mute) topbar.insertBefore(this.eye, mute);
+    const overview = (active: boolean): void => {
+      this.renderer?.setOverview?.(active);
+      this.eye.setAttribute('aria-pressed', String(active));
+    };
+    this.eye.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      overview(true);
+      try {
+        this.eye.setPointerCapture(event.pointerId);
+      } catch {
+        /* synthetic events */
+      }
+    });
+    for (const event of [
+      'pointerup',
+      'pointercancel',
+      'lostpointercapture',
+      'blur',
+    ])
+      this.eye.addEventListener(event, () => overview(false));
+    this.eye.addEventListener('keydown', (event) => {
+      event.stopPropagation();
+      if (event.code === 'Space' || event.code === 'Enter') {
+        event.preventDefault();
+        overview(true);
+      }
+    });
+    this.eye.addEventListener('keyup', (event) => {
+      event.stopPropagation();
+      overview(false);
+    });
     this.controls.setEnabled(false);
     this.node.append(top, this.controls.node, this.roster);
     const prevent = (event: Event): void => event.preventDefault();
@@ -82,11 +126,14 @@ export class PlayScreen {
     try {
       const { createRenderer } = await import('../game/renderer.js');
       if (this.destroyed) return;
-      const renderer = await createRenderer({
-        host: this.host,
-        clock: this.clock,
-        audio: this.audio,
-      });
+      const renderer = await createRenderer(
+        {
+          host: this.host,
+          clock: this.clock,
+          audio: this.audio,
+        },
+        this.level?.levelId ?? this.room.selectedLevel,
+      );
       if (this.destroyed) {
         renderer.destroy();
         return;
@@ -95,11 +142,9 @@ export class PlayScreen {
       await this.renderer.init();
       if (this.destroyed) return;
       this.host.querySelector('.board-loading')?.remove();
-      this.loaded = true;
+      this.rendererReady = true;
       this.renderer.setPlayers(this.room.players);
-      if (this.level) this.setLevel(this.level);
-      if (this.state) this.renderer.setState(this.state);
-      this.controls.setEnabled(this.connected && !!this.level);
+      if (this.level) await this.prepareDrawing(this.level);
     } catch {
       if (!this.destroyed)
         this.host.replaceChildren(
@@ -113,6 +158,9 @@ export class PlayScreen {
   }
   update(room: RoomView): void {
     this.room = room;
+    document
+      .querySelector('.topbar-room')
+      ?.setAttribute('data-code', room.code);
     this.renderer?.setPlayers(room.players);
     const mine = room.players.find((player) => player.id === this.me);
     this.controls.setButtons(mine?.buttons ?? []);
@@ -149,14 +197,44 @@ export class PlayScreen {
         ? 'CRISPY CO. / WASH & SORT'
         : 'CRISPY CO. / SLICER HALL';
     this.hint.textContent = HINTS[level.id] ?? '';
-    this.renderer?.setLevel(level, message);
-    this.renderer?.setPlayers(this.room.players);
-    if (this.state) this.renderer?.setState(this.state);
+    this.node.classList.toggle(
+      'factory-slice',
+      level.id === '1-1' || level.id === '2-1',
+    );
+    if (this.rendererReady) void this.prepareDrawing(message);
     this.controls.setButtons(message.assignments[this.me] ?? []);
     this.controls.setEnabled(this.loaded && this.connected);
   }
+  private async prepareDrawing(
+    message: Extract<ServerMessage, { type: 'levelStart' }>,
+  ): Promise<void> {
+    const level = levelById.get(message.levelId);
+    if (!level || !this.renderer) return;
+    const version = ++this.drawingVersion;
+    this.loaded = false;
+    this.controls.setEnabled(false);
+    try {
+      await this.renderer.setLevel(level, message);
+      if (this.destroyed || version !== this.drawingVersion) return;
+      this.renderer.setPlayers(this.room.players);
+      if (this.state) this.renderer.setState(this.state);
+      this.loaded = true;
+      this.eye.hidden = !this.renderer.setOverview;
+      this.controls.setEnabled(this.connected);
+    } catch {
+      if (!this.destroyed)
+        this.host.replaceChildren(
+          element(
+            'p',
+            'graphics-error',
+            'Factory assets could not load. Refresh to rejoin.',
+          ),
+        );
+    }
+  }
   setState(state: SpudView): void {
     this.state = state;
+    this.deaths.dataset.count = String(state.deaths);
     this.deaths.textContent = `${state.deaths} ${state.deaths === 1 ? 'death' : 'deaths'}`;
     this.renderer?.setState(state);
   }
@@ -191,6 +269,8 @@ export class PlayScreen {
     this.abort.abort();
     this.controls.destroy();
     this.stats.remove();
+    this.eye.remove();
+    this.drawingVersion++;
     this.renderer?.destroy();
   }
 }

@@ -8,10 +8,15 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: 'http://127.0.0.1:5173',
+    ...(process.env.SPUD_CAPTURE_BROWSER
+      ? { channel: process.env.SPUD_CAPTURE_BROWSER }
+      : {}),
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     launchOptions: {
-      args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl'],
+      args: process.env.SPUD_CAPTURE_BROWSER
+        ? ['--enable-webgl']
+        : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl'],
     },
   },
   reporter: [['list'], ['html', { open: 'never' }]],

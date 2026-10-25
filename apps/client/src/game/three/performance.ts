@@ -1,16 +1,17 @@
-export type QualityMode = 'auto' | 'high' | 'low';
+export type QualityTier = 'high' | 'medium' | 'low';
+export type QualityMode = 'auto' | QualityTier;
 
-/** A sustained low frame rate, not one shader-compilation spike, lowers quality. */
+/** Downgrade one tier after each three continuous seconds below 45 fps. */
 export class AdaptiveQuality {
   private seconds = 0;
   private frames = 0;
   private slowSeconds = 0;
-  degraded = false;
+  private automaticTier = 0;
   fps = 60;
   constructor(public mode: QualityMode = 'auto') {}
   setMode(mode: QualityMode): void {
     this.mode = mode;
-    this.degraded = false;
+    this.automaticTier = 0;
     this.resetSample();
   }
   resetSample(): void {
@@ -25,18 +26,26 @@ export class AdaptiveQuality {
     this.frames++;
     if (this.seconds < 0.5 - 1e-9) return false;
     this.fps = this.frames / this.seconds;
-    if (this.mode === 'auto' && !this.degraded) {
+    if (this.mode === 'auto' && this.automaticTier < 2) {
       this.slowSeconds = this.fps < 45 ? this.slowSeconds + this.seconds : 0;
       if (this.slowSeconds >= 3 - 1e-9) {
-        this.degraded = true;
-        this.seconds = this.frames = 0;
+        this.automaticTier++;
+        this.resetSample();
         return true;
       }
     }
     this.seconds = this.frames = 0;
     return false;
   }
+  get tier(): QualityTier {
+    return this.mode === 'auto'
+      ? (['high', 'medium', 'low'] as const)[this.automaticTier]!
+      : this.mode;
+  }
+  get degraded(): boolean {
+    return this.automaticTier > 0;
+  }
   get detailed(): boolean {
-    return this.mode === 'high' || (this.mode === 'auto' && !this.degraded);
+    return this.tier !== 'low';
   }
 }

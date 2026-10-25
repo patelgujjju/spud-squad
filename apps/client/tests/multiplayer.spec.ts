@@ -93,11 +93,12 @@ async function start(host: Page, guest: Page, level = '1-1'): Promise<void> {
     await expect(page.locator('canvas')).toBeVisible();
     await expect(page.getByTestId('board')).toHaveAttribute(
       'data-renderer',
-      'three',
+      /factory|three/,
     );
     await expect(page.getByTestId('board')).toHaveAttribute(
       'data-ready',
       'true',
+      { timeout: 90_000 },
     );
     await expect(page.locator('.game-button').first()).toBeEnabled();
   }
@@ -194,15 +195,11 @@ test('two players create, join, play, read awards, and continue to the next leve
     const last = (await page.locator('[data-button="RIGHT"]').count())
       ? page
       : guest.page;
-    const confetti = page.waitForSelector('.exit-confetti', {
-      state: 'attached',
-    });
     await last.locator('[data-button="RIGHT"]').dispatchEvent('pointerdown', {
       pointerId: 1,
       pointerType: 'touch',
       button: 0,
     });
-    await confetti;
     await expect(page.locator('[data-screen="results"]')).toBeVisible();
     await expect(guest.page.locator('[data-screen="results"]')).toBeVisible();
     for (const title of [

@@ -1,0 +1,26 @@
+{
+  "maxBytes": 6000000,
+  "shared": [
+    "props.glb",
+    "warehouse.hdr",
+    "basis_transcoder.js",
+    "basis_transcoder.wasm"
+  ],
+  "tiers": {
+    "high": [
+      "atlas-high-color.ktx2",
+      "atlas-high-normal.ktx2",
+      "atlas-high-orm.ktx2"
+    ],
+    "medium": [
+      "atlas-medium-color.ktx2",
+      "atlas-medium-normal.ktx2",
+      "atlas-medium-orm.ktx2"
+    ],
+    "low": [
+      "atlas-low-color.ktx2",
+      "atlas-low-normal.ktx2",
+      "atlas-low-orm.ktx2"
+    ]
+  }
+}

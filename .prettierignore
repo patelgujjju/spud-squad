@@ -7,3 +7,5 @@ playwright-report
 test-results
 AGENTS.md
 docs/design.md
+apps/client/public/assets/factory/basis_transcoder.js
+apps/client/public/assets/factory/*LICENSE.txt

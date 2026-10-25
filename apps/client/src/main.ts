@@ -11,7 +11,7 @@ import { PlayScreen } from './screens/play.js';
 import { ResultsScreen } from './screens/results.js';
 import { openSettings } from './screens/settings.js';
 import './styles.css';
-import './styles/toy.css';
+import './styles/factory.css';
 
 const profile = getProfile();
 const audio = new GameAudio(profile.muted);

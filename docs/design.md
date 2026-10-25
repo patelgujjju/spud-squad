@@ -42,21 +42,25 @@ Spud is a small, round potato with stubby legs, huge panicked eyes and a permane
 
 | World | Area | Look |
 | --- | --- | --- |
-| 1 | Wash and Sort | Blue tiles, water jets, sorting belts |
-| 2 | Slicer Hall | Steel floors, spinning blades, warning stripes |
+| 1 | Wash and Sort | Wet ceramic, washers, sorting belts, cool daylight and warm lamps |
+| 2 | Slicer Hall | Worn steel plate, housed slicers, red beacons and hazard markings |
 | 3 | The Freezer | Frost, icicles, frozen fry bags |
 | 4 | Fryer Floor | Bubbling oil pits, salt shakers, heat haze |
 | 5 | Night Shift | Dark packing warehouse, flashlight cones, delivery trucks |
 
-**Art direction: bright, toy-like floating dioramas.** The walkable floor and Spud are the heroes. The room sits on a thick rounded base with a soft drop shadow over a smooth vertical gradient: World 1 uses #7AD7F0 to #C9F1FF. A fixed camera about 62 degrees above the floor, with a narrow 28-degree field of view, fits the entire current room plus a small margin on phones and laptops. It never crops corridors or pans away from part of the room.
+**Art direction: inside Crispy Co.** Levels 1-1 and 2-1 form the indoor factory vertical slice. The audience is teens and adults: industrial materials, believable machinery and a cartoon potato provide the humour. Tall painted concrete/brick walls, a daylight window, worn CRISPY CO. signage, pipes, valves, ceiling beams and hanging lamps enclose the playable grid. There is a continuous room floor beyond the grid, never a floating island or sky background. Levels 1-4 and 1-6 retain the earlier prototype renderer until their own art pass.
 
-World 1 (Wash and Sort) uses #E9FBF8 slightly raised floor tiles with thin #BFE9E3 grout. Walls become low #1FB5A8 counters with #FFC93C trim and #0F5E59 shadow sides/corners. Counters and their decoration stay below 0.35 tile high. Repeated orange pipes are removed; at most one small bolt panel, gauge or pipe appears per six wall tiles, never on the path. Shapes are chunky, rounded and bevelled. Thick soft outlines belong only to Spud and interactive objects.
+Wash and Sort has worn ceramic tiles, grout, drains, reflective puddles, subtle stains and yellow safety paint following the actual walkable path. Slicer Hall reuses the enclosure with worn steel plate flooring. Each logical wall tile is a one-tile washer, sack stack, crate stack, shelf, railing or control console. Selection is deterministic from the level seed, excludes matching adjacent variants (including diagonals), and faces machinery toward the path. Decorative geometry never changes collision or movement.
 
-Danger is #FF4D4D, including the shared engine's 400 ms slicer warning and a brief death flash. Rewards and sparkle stars are #FFD23F. The exit is a glowing #6BFF9E chute with a big arrow and no text label. Spud uses #C98A4B skin, #E8B07A highlights, #8A5A2B spots, pure white eyes, dark directional pupils, eyebrows, stubby walking legs and a sweat drop. He blinks at idle and wobbles with wide eyes beside a slicer. Each hop squashes/stretches him and leaves a dust puff. Death scatters nine bouncing fry sticks with a sad face, adds a small screen shake, then a checkpoint puff and respawn pop. Golden Chips produce sparkle bursts; exit confetti carries through into Results; button presses produce a ripple.
+The slicer is a housed industrial machine with a spinning rising blade and a red warning beacon/flash, driven by the shared engine's existing 400 ms warning and level-time schedule. The exit is a doorway with a glowing green EXIT sign. The Golden Chip is a golden crisp floating above a pedestal light. Conveyor props have rollers, a belt and side rails. Spud keeps his lumpy oval body, spots, white eyes, directional pupils, brows, stubby legs and sweat drop, with porous potato skin, PBR sheen and a soft character outline. Hops squash/stretch and puff; nearby slicers trigger a panic face. Death scatters nine bouncing fries with a sad face, followed by checkpoint puff/pop. Coloured hands and names still identify each press.
 
-A warm key casts soft shadows, with cool fill and a rim on Spud. Dark counter feet/corners provide baked contact shading in Low quality. Gentle selective bloom affects only the exit, chip and warning glow. Repeated geometry is instanced and materials are cached; pixel ratio is capped at 2. Graphics Settings offer Auto, High and Low. Auto disables shadows, bloom and particles after three seconds below 45 fps. Reduced motion suppresses shake, bursts and exaggerated movement while preserving hazard phases and authoritative positions. The target is 60 fps on a mid-range Android phone and less than 400 KiB of gzipped JavaScript. Drawing remains behind `GameRenderer`, without changing simulation or protocol.
+The follow camera looks down about 50 degrees from behind Spud, framing a local area of roughly 7×9 tiles with smooth following and directional look-ahead. A 2.5-second whole-room fly-over ends behind him; any press skips it. Hold the eye button (or V on a keyboard) to see the whole room. Foreground roof/wall sections and props on camera-to-Spud sight lines fade with a dither mask immediately, then restore smoothly. The exact grid remains authoritative regardless of camera or animation.
 
-**UI art:** self-hosted Lilita One for headings and button labels, Nunito for body text. Panels use cream #FFF6E6 and dark brown #2A1E14 text. Candy buttons have a 3 px dark outline and a bottom shadow that compresses on press; each player's controls use their saturated player colour. Phones allocate 68% of viewport height to the game and 32% to controls, with a slim translucent room/timer/death/icon overlay. Laptops use floating player chips at top-left, no side panel, and centered controls with a maximum 720 px button grid. All current models and effects are procedural. Font sources/licences are recorded in `docs/assets.md`; future third-party models may only be CC0 assets from Kenney or Quaternius with an entry in that ledger.
+PBR materials, ACES tone mapping, a soft shadow-casting daylight key, cool ambient fill, warm pendant lights and an HDR warehouse reflection environment create warm/cool contrast. Static contact AO masks and source AO maps ground props even without dynamic shadows. Puddles reflect the environment; washer steam, dust in soft window shafts and corner fog add atmosphere. Repeated static parts are instanced and materials reused. Assets load on entry with a loading screen: meshopt glTF, mipmapped KTX2 colour/normal/ORM atlases and a 1K HDRI. The complete factory pack, including all three texture tiers and decoder files, must stay below 6 MB. `docs/assets.md` records every external asset, creator, source and licence. Allowed sources are Poly Haven, ambientCG, Kenney, Quaternius CC0, or Sketchfab CC0/CC-BY; CC-BY requires an in-app credit. This slice uses CC0 external assets only.
+
+Graphics Settings offer Auto, High, Medium and Low. High uses shadows, HDR reflections, particles and selective glow; Medium reduces shadow resolution, texture size and pixel ratio; Low uses smaller textures and disables shadows, reflections, particles and bloom. Auto steps down one tier after three continuous seconds below 45 fps. Pixel ratio is capped at 2. Reduced motion suppresses shake, fly-over movement and particles while preserving hazard phases and positions. The target remains 60 fps on a mid-range Android and less than 400 KiB gzipped JavaScript; physical-device performance requires device testing. All drawing stays behind `GameRenderer`, without simulation or protocol changes.
+
+**UI art:** sleek dark translucent panels, white text and system UI typography. Big dark controls use each player's colour for glowing edges and icons, with immediate pressed feedback and a restrained ripple. Phones allocate 70% of viewport height to gameplay and 30% to controls, exceeding the 68% minimum. Room code, timer, deaths and icons form a slim glass overlay. The level title appears only during the fly-over. Laptops have top-left player chips and centered controls with a maximum 720 px button grid. Tap targets stay at least 44 px and all controls remain keyboard accessible.
 
 **Sound:** squeaky footsteps, Spud's scream, oil sizzles, blade whooshes, a happy jingle on escape. Music: one short upbeat loop per world, with a mute switch.
 
@@ -82,7 +86,7 @@ A warm key casts soft shadows, with cool fill and a rim on Spud. Dark counter fe
 - The 10 Hz gameplay loop stops on completion or when no connected players remain. If everyone disconnects, or a deployment unexpectedly discards a live object, the in-memory attempt ends and the room returns to the lobby. Reconnect grace preserves identity; an attempt cannot resume after its live memory is discarded.
 - Stage 3 adds immediate multi-pointer controls, gesture protection confined to gameplay, optional Screen Wake Lock, first-gesture Web Audio effects and mute, procedural Three.js potato/blade/fry/hand art, portrait and landscape layouts, and large named results awards. Browser checks cover 360×740, 390×844 and 1366×768. A host `next` action carries the crew's Results readiness into the next prototype level.
 
-Every player sees the whole room on their own screen, but can press only the buttons assigned to them; the server moves Spud one tile per accepted press.
+Every player sees the same authoritative attempt and can press only their assigned buttons; the server moves Spud one tile per accepted press. In the indoor slice, the camera follows locally and the held eye view reveals the whole room.
 
 ### Movement rules
 
@@ -353,9 +357,9 @@ A new player must go from opening a shared link to pressing their first button i
 
 | Device | Layout |
 | --- | --- |
-| Phone, portrait (main target) | Whole floating room in the top 68%; saturated player-colour candy controls in the bottom 32%. Room code, timer, deaths and icons share a slim translucent overlay. One control fills the row; two or three sit side by side. |
-| Phone, landscape | Whole floating room above a compact horizontal control row, retaining the 68%/32% height split. |
-| Laptop | Whole floating room with small player chips at top-left; no side panel. Controls are centered underneath, with a maximum 720 px button grid and keyboard hints (arrows, Space, Shift). |
+| Phone, portrait (main target) | Following factory view in the top 70%; dark player-accent controls in the bottom 30%. Slim glass room/timer/death/icon overlay; title appears during the fly-over only. Hold eye for whole room. |
+| Phone, landscape | Following view above a compact horizontal control row, retaining the 70%/30% height split. |
+| Laptop | Following view with small player chips at top-left; hold eye or V for whole room. Controls centered underneath, maximum 720 px button grid, keyboard hints (arrows, Space, Shift). |
 
 Other players' presses appear as small coloured hands with names around Spud, so everyone can see who is doing what.
 
@@ -420,7 +424,7 @@ Players load the game from the CDN, join through the Worker, then talk only to t
 
 | Part | Choice | Why |
 | --- | --- | --- |
-| Game client | Vite + TypeScript; Three.js behind a renderer interface for the procedural 3D level; plain HTML and CSS for menus and buttons | Instanced tiles, shared materials, adaptive quality, small download, no install |
+| Game client | Vite + TypeScript; Three.js behind a renderer interface, with meshopt glTF and KTX2 asset packs; plain HTML and CSS for menus and buttons | Instanced room geometry, PBR materials, adaptive quality, small download, no install |
 | Shared game logic | One TypeScript package used by both client and server | The same rules everywhere; Solo Practice runs fully offline |
 | Hosting for the site | Cloudflare Pages (global CDN) | Free tier, fast in India and abroad |
 | Room server | Cloudflare Workers + Durable Objects, one object per room, WebSockets | Rooms scale automatically; no servers to manage |

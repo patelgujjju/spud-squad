@@ -14,11 +14,13 @@ export interface GameRenderer {
   setLevel(
     level: Level,
     start: Extract<ServerMessage, { type: 'levelStart' }>,
-  ): void;
+  ): void | Promise<void>;
   setPlayers(players: PlayerView[]): void;
   setState(state: SpudView): void;
   event(event: GameEvent): void;
   visibility(): void;
+  skipIntro?(): void;
+  setOverview?(active: boolean): void;
   destroy(): void;
 }
 export interface RendererContext {
@@ -28,7 +30,12 @@ export interface RendererContext {
 }
 export async function createRenderer(
   context: RendererContext,
+  levelId = '1-1',
 ): Promise<GameRenderer> {
+  if (levelId === '1-1' || levelId === '2-1') {
+    const { FactoryRenderer } = await import('./factory/renderer.js');
+    return new FactoryRenderer(context);
+  }
   const { ThreeLevelRenderer } = await import('./three/renderer.js');
   return new ThreeLevelRenderer(context);
 }

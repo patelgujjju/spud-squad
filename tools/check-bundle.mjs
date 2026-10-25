@@ -2,10 +2,14 @@ import { readdir, readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 
 const assets = new URL('../apps/client/dist/assets/', import.meta.url);
-const files = (await readdir(assets)).filter((file) => file.endsWith('.js'));
+const files = (await readdir(assets, { recursive: true })).filter((file) =>
+  file.endsWith('.js'),
+);
 const sizes = await Promise.all(
   files.map(
-    async (file) => gzipSync(await readFile(new URL(file, assets))).byteLength,
+    async (file) =>
+      gzipSync(await readFile(new URL(file.replaceAll('\\', '/'), assets)))
+        .byteLength,
   ),
 );
 const total = sizes.reduce((sum, size) => sum + size, 0);

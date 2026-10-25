@@ -68,16 +68,16 @@ pnpm build
 
 Playwright checks 360×740, 390×844 and 1366×768, plus rotated phone layouts. It uses two browser contexts for create/join/play/results/reconnect and a separate laptop-plus-two-phones scenario. Tests include actual multi-touch input, immediate feedback, keyboard rejection, first-gesture audio, optional wake-lock lifecycle, slicer death/respawn, and Next Level. Results and board screenshots are saved under `apps/client/test-results/`; the HTML report is under `apps/client/playwright-report/`. They are ignored by Git.
 
-The build checks the sum of **all** JavaScript chunks against 400 KiB gzipped, including the Three.js renderer loaded on entry to a level. The factory, Spud, effects and hand labels are generated in code. No art, font or sound files are downloaded from third parties. The development servers listen on the local network; `pnpm build` does not publish.
+The build checks the sum of **all** bundled JavaScript chunks against 400 KiB gzipped, including the Three.js renderers and asset loaders. The indoor factory pack is checked separately against 6 MB, counting all texture tiers, compressed models, HDRI and decoder files. External CC0 surfaces and HDRI are self-hosted, with creators and exact sources in [docs/assets.md](docs/assets.md). Spud, props and effects are original project models/code; sounds use Web Audio. The development servers listen on the local network; `pnpm build` does not publish.
 
-The fixed 62-degree diorama camera fits the whole room on phones and laptops. Low counters keep every path visible above a rounded floating island and a sky gradient. Open **Settings** (the gear button) to choose Auto, High or Low graphics. Auto starts with shadows, bloom and particles and disables shadows, selective bloom and particles after three seconds below 45 fps; Low disables all three immediately. Pixel ratio is capped at 2. System reduced-motion preferences also remove ambient motion and particles. These options affect drawing only; movement, input, room messages and the authoritative server are unchanged.
+Levels **1-1 and 2-1** use the indoor factory vertical slice: tiled/steel floors, enclosed walls, machinery, window daylight and warm lamps. The camera follows Spud from behind at about 50 degrees; any press skips the 2.5-second intro fly-over. Hold the eye button (or **V**) to see the whole room. Props and wall sections blocking Spud or the local path fade with a dither mask. Other levels retain the earlier prototype renderer. Open **Settings** to choose Auto, High, Medium or Low. Auto steps down one tier after three sustained seconds below 45 fps. Low disables shadows, reflections, bloom and particles and loads smaller textures. Pixel ratio never exceeds 2. Reduced motion removes fly-over movement, shake and particles. These settings affect drawing only.
 
 ## Manual fun-test checklist
 
 - Join from the laptop plus both phones with different nicknames. Check a wrong code and a filtered nickname, then successfully rejoin.
 - Try all four levels. In 1-4, collect a card and open the door. In 1-6, let the belts push and try the side route for the Golden Chip. In 2-1, wait for the blade and deliberately die.
 - Press two buttons with two fingers. Check instant pressed-state feedback and Android vibration. Lift just one finger; the other button should stay visually pressed. Long-press, double-tap, pinch and drag the game surface: there should be no selection, menu, zoom or pull-to-refresh. Menus retain ordinary browser zoom.
-- Rotate each phone mid-level. The board stays above the buttons in portrait and moves to their left in landscape. Check safe-area/notch space and every tap target.
+- Rotate each phone mid-level. The view stays above a compact control row, with at least 68% of phone height reserved for gameplay. Check safe-area/notch space and every tap target.
 - Check the blob's hop, widened eyes near a slicer, red warning, spinning blade, fry pile, checkpoint respawn and coloured named hands on the push side.
 - On Android Chrome and iPhone Safari, make the first tap, then listen for footsteps, blade whooshes, death, checkpoint and win. Toggle mute, refresh and confirm mute remains saved.
 - On an HTTPS build, confirm the screen stays awake during a level and the lock is released at Results. On local HTTP, check that unsupported Wake Lock causes no error.
@@ -180,22 +180,26 @@ git add README.md docs/design.md docs/server.md package.json apps/client apps/se
 git commit -m "Build playable mobile client with Pixi art, touch controls, audio and browser tests"
 ```
 
-## Three.js renderer update
+## Indoor factory vertical slice
 
-The game view uses 68% of phone height, with saturated candy controls below and a translucent stats overlay. Desktop players appear as floating chips. Lilita One and Nunito are self-hosted; sources and licences are in [docs/assets.md](docs/assets.md).
+The game view uses 70% of phone height, with dark player-accent controls below and a slim glass HUD. The title appears only during the fly-over. Desktop players appear as small top-left chips, with a maximum 720 px button grid below. The new HUD uses system UI fonts.
 
-The drawing interface is in `apps/client/src/game/renderer.ts`; the procedural scene, camera, character, props, hands and quality policy live in `apps/client/src/game/three/`. The shared engine, server and wire protocol are unchanged. Hand name textures are cached per player; repeated factory pieces use instancing. The renderer disposes its GPU resources when leaving play and pauses animation in hidden tabs.
+`apps/client/src/game/renderer.ts` selects the factory renderer for 1-1 and 2-1. Room, camera, PBR materials, deterministic furnishings, asset loading and visibility live in `apps/client/src/game/factory/`. Shared character/effect helpers remain in `game/three/`. The engine, server, levels and wire protocol are unchanged. Repeated factory parts are instanced; GPU resources and KTX workers are disposed on leaving; hidden tabs pause drawing.
 
-Run `pnpm test:client` for multiplayer smoke tests, quality checks and screenshot exports. To regenerate only the six requested images:
+Run `pnpm test:client` for multiplayer smoke tests, camera/furnishing checks, quality controls and screenshot exports. To regenerate the four indoor screenshots plus two exact 10-second Playwright gameplay videos:
 
 ```powershell
-pnpm --filter @spud-squad/client test --grep "factory screenshot" --project=phone-390 --project=laptop --trace=off
+pnpm --filter @spud-squad/client capture:slice
 ```
 
-The PNGs in `docs/screenshots/` show real two-player rooms on 1-1, 1-6 and 2-1 at 390×844 and 1366×768. The browser tests use a software WebGL renderer; verify frame rate and thermal behavior on a physical Android phone before the group fun test. Test Auto/High/Low in Settings, rotate both phones, watch a warning and death/respawn, and check names on rapid simultaneous presses.
+The capture runner starts local Wrangler and Vite automatically. On Windows it uses an isolated installed Chrome (or Edge) session because the Chromium headless-shell recorder can stall on this graphics setup. Other platforms use Playwright's full Chromium; install it with `pnpm --filter @spud-squad/client exec playwright install chromium`. Override the browser with `$env:SPUD_CAPTURE_BROWSER = 'chrome'` or `'msedge'` if needed. Videos require FFmpeg: on this laptop it uses `C:\ffmpeg\bin\ffmpeg.exe`; set `$env:FFMPEG_PATH = 'C:\path\to\ffmpeg.exe'` if installed elsewhere. Playwright starts capturing browser frames after GPU warmup; bounded realtime FFmpeg encoding produces exactly 10 seconds. Real two-player inputs drive both clips, including a blade death and checkpoint respawn in 2-1. Files are listed in [docs/screenshots/README.md](docs/screenshots/README.md). The older 1-6 PNGs are prototype references.
+
+Assets are checked in; normal development/builds need no art tools or network downloads. To regenerate the meshopt models and High/Medium/Low KTX2 atlases from the recorded public sources, run `pnpm --filter @spud-squad/client art:build`. This build-only pipeline uses Sharp, Basis Universal and glTF Transform. It saves source files in ignored `apps/client/art/.cache/`.
+
+The default browser tests use software WebGL; review captures use the selected full browser. Physical Android frame rate, thermals and battery use still need a device run: play both slice levels for five minutes, rotate the phones, test each quality tier, hold the eye view, skip the intro, watch a warning/death/respawn, and check named hands during simultaneous presses. Check the local path within one second and confirm Spud stays visible throughout each route.
 
 ```powershell
 Set-Location F:\Spud-Squad
-git add AGENTS.md README.md docs/design.md docs/screenshots apps/client pnpm-lock.yaml
-git commit -m "Replace PixiJS drawing with procedural Three.js toon renderer"
+git add .gitignore .prettierignore eslint.config.js README.md docs/design.md docs/assets.md docs/screenshots apps/client tools/check-bundle.mjs pnpm-lock.yaml pnpm-workspace.yaml
+git commit -m "Build indoor factory vertical slice for levels 1-1 and 2-1"
 ```

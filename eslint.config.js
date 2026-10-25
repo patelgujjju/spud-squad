@@ -8,6 +8,7 @@ export default [
       '**/dist/**',
       '**/coverage/**',
       '**/.wrangler/**',
+      'apps/client/public/assets/factory/basis_transcoder.js',
     ],
   },
   eslint.configs.recommended,

@@ -1,0 +1,13 @@
+Basis Universal texture transcoder
+Copyright (C) 2019-2026 Binomial LLC. All Rights Reserved.
+https://github.com/BinomialLLC/basis_universal
+Distributed under Apache License 2.0; see BASIS-LICENSE.txt.
+The unmodified JS/WASM decoder is copied from the installed Three.js distribution.
+
+Three.js
+Copyright (c) 2010-2026 three.js authors
+https://threejs.org/
+Distributed under the MIT licence; see THREE-LICENSE.txt.
+
+Poly Haven art source authors and CC0 licences are recorded in docs/assets.md
+and apps/client/art/sources.json. Models are original Spud Squad project work.

@@ -4,7 +4,8 @@ const key = 'spud.graphics-quality';
 let current: QualityMode = 'auto';
 try {
   const saved = localStorage.getItem(key);
-  if (saved === 'high' || saved === 'low') current = saved;
+  if (saved === 'high' || saved === 'medium' || saved === 'low')
+    current = saved;
 } catch {
   /* optional */
 }

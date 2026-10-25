@@ -1,0 +1,138 @@
+[
+  {
+    "id": "interior_tiles",
+    "name": "Interior Tiles",
+    "authors": ["Charlotte Baglioni"],
+    "licence": "CC0-1.0",
+    "source": "https://polyhaven.com/a/interior_tiles",
+    "files": [
+      {
+        "kind": "color",
+        "name": "interior_tiles-color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/interior_tiles/interior_tiles_diff_1k.jpg",
+        "md5": "94ba3714450bb6bbe6a57c9a26e8dac5",
+        "bytes": 694562
+      },
+      {
+        "kind": "normal",
+        "name": "interior_tiles-normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/interior_tiles/interior_tiles_nor_gl_1k.jpg",
+        "md5": "5c3a384bef2bbe4222803e7b40641609",
+        "bytes": 414639
+      },
+      {
+        "kind": "orm",
+        "name": "interior_tiles-orm.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/interior_tiles/interior_tiles_arm_1k.jpg",
+        "md5": "d26b56a5d079e341bc443172f1bdda19",
+        "bytes": 564996
+      }
+    ]
+  },
+  {
+    "id": "concrete_brick_wall_001",
+    "name": "Concrete Brick Wall 001",
+    "authors": ["Dimitrios Savva", "Rico Cilliers"],
+    "licence": "CC0-1.0",
+    "source": "https://polyhaven.com/a/concrete_brick_wall_001",
+    "files": [
+      {
+        "kind": "color",
+        "name": "concrete_brick_wall_001-color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_brick_wall_001/concrete_brick_wall_001_diffuse_1k.jpg",
+        "md5": "983ae9710e731f287e9971b19a6998ec",
+        "bytes": 131890
+      },
+      {
+        "kind": "normal",
+        "name": "concrete_brick_wall_001-normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_brick_wall_001/concrete_brick_wall_001_nor_gl_1k.jpg",
+        "md5": "e715213ef408f633162ae46f852e3cee",
+        "bytes": 281442
+      },
+      {
+        "kind": "orm",
+        "name": "concrete_brick_wall_001-orm.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_brick_wall_001/concrete_brick_wall_001_arm_1k.jpg",
+        "md5": "bbd5af7b90832a4de466e8cf9e0981fe",
+        "bytes": 143396
+      }
+    ]
+  },
+  {
+    "id": "metal_plate",
+    "name": "Metal Plate",
+    "authors": ["Rob Tuytel"],
+    "licence": "CC0-1.0",
+    "source": "https://polyhaven.com/a/metal_plate",
+    "files": [
+      {
+        "kind": "color",
+        "name": "metal_plate-color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_diff_1k.jpg",
+        "md5": "bd9daf4c04046ca392a38b8df955ed26",
+        "bytes": 692234
+      },
+      {
+        "kind": "normal",
+        "name": "metal_plate-normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_nor_gl_1k.jpg",
+        "md5": "d379e66130ad6ccff217ac9b13de935d",
+        "bytes": 770307
+      },
+      {
+        "kind": "orm",
+        "name": "metal_plate-orm.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate/metal_plate_arm_1k.jpg",
+        "md5": "13f064ffa4863a4170d902f675eb022e",
+        "bytes": 1004043
+      }
+    ]
+  },
+  {
+    "id": "wood_planks",
+    "name": "Wood Planks",
+    "authors": ["Amal Kumar"],
+    "licence": "CC0-1.0",
+    "source": "https://polyhaven.com/a/wood_planks",
+    "files": [
+      {
+        "kind": "color",
+        "name": "wood_planks-color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks/wood_planks_diff_1k.jpg",
+        "md5": "922505c35c2d0dc6a44da7ac77757134",
+        "bytes": 609525
+      },
+      {
+        "kind": "normal",
+        "name": "wood_planks-normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks/wood_planks_nor_gl_1k.jpg",
+        "md5": "98d2313130880f8ed7b87e843f6ba149",
+        "bytes": 652441
+      },
+      {
+        "kind": "orm",
+        "name": "wood_planks-orm.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks/wood_planks_arm_1k.jpg",
+        "md5": "7188148704e0784171fa57332514ce25",
+        "bytes": 383696
+      }
+    ]
+  },
+  {
+    "id": "empty_warehouse_01",
+    "name": "Empty Warehouse 01",
+    "authors": ["Sergej Majboroda"],
+    "licence": "CC0-1.0",
+    "source": "https://polyhaven.com/a/empty_warehouse_01",
+    "files": [
+      {
+        "kind": "environment",
+        "name": "empty_warehouse_01-environment.hdr",
+        "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/empty_warehouse_01_1k.hdr",
+        "md5": "ab2931b0191b050b97b1e08ab67b0fb0",
+        "bytes": 1672140
+      }
+    ]
+  }
+]

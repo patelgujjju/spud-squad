@@ -1,27 +1,29 @@
-# Floating diorama captures and visual review
+# Indoor factory slice: captures and visual review
 
-These are full-page Playwright captures from real two-player rooms using High graphics. The fixed 62-degree camera fits the entire floating room on every viewport. The conveyor carries Spud to the saw corridor on 1-6; on 2-1 he waits beside the blade after activating the checkpoint.
+These full-page Playwright captures use real two-player rooms and High graphics. Levels 1-1 and 2-1 use the enclosed factory renderer, a close following camera, dark glass HUD and 70% phone gameplay allocation. In 2-1 Spud waits beside the slicer after activating the checkpoint. The test also holds and releases the eye view to verify the whole-room camera.
 
 | Level               | Phone, 390×844         | Laptop, 1366×768        |
 | ------------------- | ---------------------- | ----------------------- |
 | 1-1 · Wake Up, Spud | [PNG](1-1-390x844.png) | [PNG](1-1-1366x768.png) |
-| 1-6 · Belt Up       | [PNG](1-6-390x844.png) | [PNG](1-6-1366x768.png) |
 | 2-1 · Chop Chop     | [PNG](2-1-390x844.png) | [PNG](2-1-1366x768.png) |
 
 Regenerate from Windows PowerShell in `F:\Spud-Squad`:
 
 ```powershell
-pnpm --filter @spud-squad/client test --grep "factory screenshot" --project=phone-390 --project=laptop --trace=off
+pnpm --filter @spud-squad/client capture:slice
 ```
 
-The test runner starts local Wrangler and Vite if they are not already running. These software WebGL captures verify appearance and layout; they do not measure physical phone performance.
+The runner starts local Wrangler and Vite if needed. Windows uses isolated installed Chrome, falling back to Edge; other platforms use Playwright's full Chromium. `$env:SPUD_CAPTURE_BROWSER` overrides the browser channel. FFmpeg is at `C:\ffmpeg\bin\ffmpeg.exe` on this laptop; set `$env:FFMPEG_PATH` to override. These captures verify appearance and layout, not physical phone frame rate.
 
-## Review against the art bible
+## Gameplay videos
 
-All six final PNGs were opened and inspected. The paths stay visible above the low counters; Spud, the Golden Chip and the arrow-only exit are distinct at a glance. Saws are visible on 1-6 and 2-1; 1-1 intentionally contains no saw. The full base fits with a small margin and no path decoration. The phone game view measures 68% of viewport height; the complete controls tray measures 32%. The laptop button grid stays below 720 px wide and players use floating chips.
+- [1-1 — ten seconds of gameplay](1-1-gameplay.webm): two players steer through the route, collect the Golden Chip and demonstrate the following camera and named hand feedback.
+- [2-1 — ten seconds of gameplay](2-1-gameplay.webm): checkpoint, active blade, real authoritative death, fry animation and checkpoint respawn.
 
-Counter tops, bolt panels and bolts remain below 0.35 tile high (the highest bolt reaches 0.349). Exactly one bolt panel is added per six wall tiles, and no orange pipes remain. Baked dark counter feet keep edges readable with shadows disabled. Bloom is restricted to the exit, reward and warning layers and is skipped in Low or downgraded Auto quality.
+Playwright records the actual browser at 1366×768 after shader warmup. FFmpeg encodes the timestamped frames into exactly 10 seconds of WebM. The guest client's drawing pauses only after it is ready, saving capture GPU time while its normal controls and WebSocket processing stay active. No drawing fixture or alternate simulation drives these recordings.
 
-The first two complete visual passes are retained in `pass-1/` and `pass-2/`. Reviewing pass 1 caught the edge-on chip, cramped phone title and inconsistent second-button alignment. Pass 2 keeps the chip face visible, adds reward stars, enlarges the exit arrow and corrects those UI issues. The final gallery adds the cream control tray, correct world captions, readable hand-name sizing and persistent press ripples.
+## Visual checks
 
-Browser coverage includes portrait and landscape sizing, multi-pointer feedback, keyboard ownership, reconnect, graphics persistence, real slicer death/checkpoint respawn, Results confetti and three-device play. Software WebGL startup checks allow 30 seconds; physical Android frame rate and thermal behavior still need a device test.
+The PNGs are opened during review to check the enclosure, safety-lined path and visible Spud. The camera follows locally instead of fitting a floating board. Brick/paint walls, daylight window, CRISPY CO. sign, lamps and continuous floor establish the room. Ceramic and steel have distinct PBR surfaces. Interactive machines retain their silhouettes; foreground props, walls and their shadows dither away when they hide Spud or the local path. The phone game area is 70% of viewport height; controls occupy 30%. Desktop controls stay at most 720 px wide.
+
+Earlier 1-6 PNGs and `pass-1/` / `pass-2/` are retained prototype references. They do not show the new indoor slice. Physical mid-range Android frame rate and thermal behaviour still need a device test.

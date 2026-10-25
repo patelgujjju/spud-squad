@@ -20,6 +20,7 @@ interface Particle {
   color: [number, number, number];
   gravity: number;
   shape: number;
+  opacity: number;
 }
 export class FactoryParticles {
   private positions = new Float32Array(COUNT * 3);
@@ -71,13 +72,14 @@ export class FactoryParticles {
         color: [1, 1, 1],
         gravity: 0,
         shape: 0,
+        opacity: 1,
       });
   }
   resize(height: number, ratio: number): void {
     this.material.uniforms.viewport!.value = height * ratio;
   }
   burst(
-    kind: 'puff' | 'spark' | 'chip' | 'confetti',
+    kind: 'puff' | 'steam' | 'spark' | 'chip' | 'confetti',
     origin: Vector3,
     count: number,
   ): void {
@@ -93,37 +95,45 @@ export class FactoryParticles {
       const index = (this.cursor++ % (COUNT - DUST)) + DUST;
       const angle = i * 2.39996 + this.cursor;
       const puff = kind === 'puff';
+      const steam = kind === 'steam';
       const confetti = kind === 'confetti';
-      const speed = puff
-        ? 0.48
-        : confetti
-          ? 1.65
-          : kind === 'spark'
-            ? 1.5
-            : 0.6;
+      const speed = steam
+        ? 0.05
+        : puff
+          ? 0.48
+          : confetti
+            ? 1.65
+            : kind === 'spark'
+              ? 1.5
+              : 0.6;
       this.particles[index] = {
         age: 0,
-        life: confetti ? 1.7 : puff ? 0.45 : 0.8,
+        life: steam ? 2.6 : confetti ? 1.7 : puff ? 0.45 : 0.8,
         x: origin.x,
         y: origin.y,
         z: origin.z,
         vx: Math.cos(angle) * speed,
-        vy: puff
-          ? 0.4 + (i % 3) * 0.1
-          : confetti
-            ? 2 + (i % 5) * 0.2
-            : 1 + (i % 4) * 0.2,
+        vy: steam
+          ? 0.19
+          : puff
+            ? 0.4 + (i % 3) * 0.1
+            : confetti
+              ? 2 + (i % 5) * 0.2
+              : 1 + (i % 4) * 0.2,
         vz: Math.sin(angle) * speed,
-        size: puff ? 0.2 : confetti ? 0.1 : 0.11,
-        color: puff
-          ? [1, 0.98, 0.9]
-          : confetti
-            ? candy[i % candy.length]!
-            : kind === 'spark'
-              ? [1, 0.25, 0.15]
-              : [1, 0.82, 0.15],
-        gravity: puff ? 0 : confetti ? 2.6 : 2.2,
-        shape: confetti ? 2 : puff ? 0 : 1,
+        size: steam ? 0.42 : puff ? 0.2 : confetti ? 0.1 : 0.11,
+        color: steam
+          ? [0.77, 0.85, 0.87]
+          : puff
+            ? [1, 0.98, 0.9]
+            : confetti
+              ? candy[i % candy.length]!
+              : kind === 'spark'
+                ? [1, 0.25, 0.15]
+                : [1, 0.82, 0.15],
+        gravity: steam || puff ? 0 : confetti ? 2.6 : 2.2,
+        shape: confetti ? 2 : steam || puff ? 0 : 1,
+        opacity: steam ? 0.18 : 1,
       };
     }
   }
@@ -146,7 +156,9 @@ export class FactoryParticles {
         p.y += p.vy * dt;
         p.z += p.vz * dt;
         p.vy -= p.gravity * dt;
-        this.alpha[i] = Math.max(0, 1 - p.age / Math.max(0.01, p.life));
+        this.alpha[i] =
+          Math.max(0, 1 - p.age / Math.max(0.01, p.life)) * p.opacity;
+        if (p.life > 2) p.size += dt * 0.11;
       }
       this.positions[i * 3] = p.x;
       this.positions[i * 3 + 1] = p.y;

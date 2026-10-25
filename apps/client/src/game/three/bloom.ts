@@ -54,8 +54,11 @@ export class ToyBloom {
   render(gpu: WebGLRenderer, scene: Scene, camera: PerspectiveCamera): void {
     const mask = camera.layers.mask;
     camera.layers.set(1);
+    const background = scene.background;
+    scene.background = null;
     gpu.setRenderTarget(this.source);
     gpu.render(scene, camera);
+    scene.background = background;
     camera.layers.mask = mask;
     this.quad.material = this.blur;
     this.blur.uniforms.image!.value = this.source.texture;

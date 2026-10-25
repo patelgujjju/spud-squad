@@ -71,6 +71,9 @@ export class GameControls {
       button.setAttribute('aria-label', value);
       button.disabled = !this.enabled;
       const icon = element('span', 'button-icon', ICONS[value]);
+      if (value === 'GRAB')
+        icon.innerHTML =
+          '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 16V9a2 2 0 0 1 4 0v6-9a2 2 0 0 1 4 0v9-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v9c0 6-3 9-9 9-4 0-6-2-8-5l-4-6a2 2 0 0 1 3-3l4 4"/></svg>';
       icon.setAttribute('aria-hidden', 'true');
       button.append(
         icon,
